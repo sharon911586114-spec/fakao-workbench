@@ -136,6 +136,18 @@
   .quiz-opt.wrong{background:#fff1f0;border-color:#ffccc7;color:#cf1322}
   .quiz-opt.disabled{opacity:.5;cursor:default}
   .quiz-opt .opt-letter{font-weight:700;margin-right:6px}
+  .quiz-opt.selected{border-color:var(--primary);background:#e6f4ff}
+  .quiz-opt .opt-check{display:inline-block;width:18px;height:18px;border:2px solid #d9d9d9;border-radius:4px;margin-right:8px;vertical-align:middle;position:relative}
+  .quiz-opt.selected .opt-check{border-color:var(--primary);background:var(--primary)}
+  .quiz-opt.selected .opt-check::after{content:'';position:absolute;left:5px;top:1px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .quiz-type-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;margin-right:6px}
+  .quiz-type-badge.single{background:#e6f4ff;color:#1677ff}
+  .quiz-type-badge.multiple{background:#f6ffed;color:#389e0d}
+  .quiz-type-badge.indefinite{background:#fff7e6;color:#d46b08}
+  .quiz-type-badge.tf{background:#fff0f6;color:#c41d7f}
+  .quiz-confirm-bar{margin-top:10px;text-align:center}
+  .quiz-wrong-flag{display:inline-block;background:#fff1f0;border:1px solid #ffccc7;color:#cf1322;font-size:12px;padding:2px 8px;border-radius:4px;margin-left:8px}
+  .quiz-wrong-flag.added{background:#f6ffed;border-color:#b7eb8f;color:#389e0d}
   .quiz-explain{margin-top:14px;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.6}
   .quiz-explain.ok{background:#f6ffed;border:1px solid #b7eb8f}
   .quiz-explain.bad{background:#fff1f0;border:1px solid #ffccc7}
@@ -289,9 +301,10 @@
         <div class="row">
           <div><label class="fl">科目</label><select id="pfSubject"></select></div>
           <div><label class="fl">章节/知识点</label><select id="pfChapter"></select></div>
+          <div><label class="fl">题型</label><select id="pfType"><option value="all">全部题型（混合）</option><option value="single">单选题</option><option value="multiple">多选题</option><option value="indefinite">不定项题</option><option value="tf">判断题</option></select></div>
         </div>
         <div class="row" style="margin-top:10px">
-          <div><label class="fl">出题数量</label><input id="pfNum" type="number" min="1" value="5"></div>
+          <div><label class="fl">出题数量</label><input id="pfNum" type="number" min="1" value="10"></div>
           <div style="flex:0"><label class="fl">&nbsp;</label><button class="btn-primary" onclick="startPractice()">开始练习</button></div>
         </div>
         <div class="tip" style="margin-top:12px">💡 题库为内置练习（含公开真题整理 + 考点题，共 <b id="bankCount">0</b> 题）。点击「开始练习」进入全屏一题一页模式，答完自动出结果。</div>
@@ -327,7 +340,10 @@
     <div class="card">
       <div class="flex-between" style="margin-bottom:10px">
         <h3 style="margin:0">📕 错题本 <span class="tag" id="wrongCount">0</span></h3>
-        <button class="btn-primary btn-sm" onclick="exportWrong()">⬇️ 导出错题本(txt)</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-primary btn-sm" onclick="switchTab('practice');startPractice(true)">🔄 错题重练</button>
+          <button class="btn-ghost btn-sm" onclick="exportWrong()">⬇️ 导出错题本(txt)</button>
+        </div>
       </div>
       <div id="wrongStat"></div>
     </div>
@@ -509,6 +525,90 @@ const DEFAULT_BANK = [
   {id:'k74',subjectId:'sg',chapter:'国际经济法·CISG',q:'《联合国国际货物销售合同公约》（CISG）不适用下列哪类买卖？',opts:['跨国货物买卖','不同缔约国营业地当事人之间的货物买卖','供私人使用的消费品买卖','公约缔约国之间当事人的货物买卖'],answer:2,explain:'CISG不适用：供私人使用的消费品买卖；拍卖；依法令执行的扣押；公债、股票、投资证券；电力等。',src:'考点'},
   {id:'k75',subjectId:'sg',chapter:'国际经济法·贸易术语',q:'在FOB术语下，卖方的主要义务包括？',opts:['办理运输、支付运费','在指定装运港将货物交到买方指定的船上','办理保险','办理进口清关'],answer:1,explain:'FOB（Free on Board）：卖方在指定装运港将货物交到买方指定船上即完成交货，风险转移以船舷为界。买方负责运输、保险和进口清关。',src:'考点'},
   {id:'k76',subjectId:'sg',chapter:'国际经济法·反倾销',q:'关于WTO反倾销措施，实施反倾销措施的前提条件包括？',opts:['存在倾销、存在损害、倾销与损害之间有因果关系','存在倾销即可','存在损害即可','进口国国内产业利润下降'],answer:0,explain:'反倾销措施三要件：存在倾销（出口价格低于正常价值）、存在实质损害或实质损害威胁、倾销与损害之间有因果关系。三者缺一不可。',src:'考点'},
+  {id:'k77',subjectId:'x',chapter:'正当防卫',type:'single',q:'甲在下班途中被乙持刀抢劫，甲在反抗过程中将乙打倒在地，乙倒地后甲继续用砖头击打乙头部致其重伤。关于甲的行为，下列哪一选项正确？',opts:['甲构成正当防卫不负刑事责任','甲构成防卫过当应当负刑事责任','甲构成故意伤害罪不属于正当防卫','甲构成紧急避险'],answer:1,explain:'乙倒地后已丧失继续侵害能力，甲继续击打属于防卫过当，明显超过必要限度造成重大损害，应当负刑事责任但应当减轻或免除处罚。',src:'2022真题考点'},
+  {id:'k78',subjectId:'x',chapter:'紧急避险',type:'single',q:'甲驾驶汽车正常行驶，突然一行人乙闯入机动车道，甲为避让乙而急打方向盘撞坏了路边丙的商铺。甲的行为属于？',opts:['故意毁坏财物罪','紧急避险不负刑事责任','过失毁坏财物罪','民事侵权'],answer:1,explain:'紧急避险是为使合法权益免受正在发生的危险不得已采取的损害另一较小合法权益的行为。甲为避免撞人而撞商铺符合紧急避险要件。',src:'2023真题考点'},
+  {id:'k79',subjectId:'x',chapter:'犯罪形态',type:'single',q:'甲欲杀乙持刀埋伏在乙回家必经之路。乙当晚改变路线未经过该路甲未能得逞。甲的行为属于？',opts:['犯罪预备','犯罪未遂','犯罪中止','犯罪既遂'],answer:0,explain:'甲为犯罪准备工具制造条件（埋伏）但未能着手实行杀人行为（乙未出现）属于犯罪预备。犯罪未遂要求已着手实行犯罪。',src:'2023真题考点'},
+  {id:'k80',subjectId:'x',chapter:'犯罪形态',type:'single',q:'甲在商店盗窃一部手机后在走出店门时因内心恐惧将手机放回原处。甲的行为属于？',opts:['犯罪既遂','犯罪未遂','犯罪中止','不构成犯罪'],answer:2,explain:'甲已着手实行盗窃行为但在犯罪既遂之前自动放弃犯罪将手机放回原处属于犯罪中止。没有造成损害的中止犯应当免除处罚。',src:'2024真题考点'},
+  {id:'k81',subjectId:'x',chapter:'共同犯罪',type:'multiple',q:'关于共同犯罪下列哪些选项是正确的？',opts:['共同犯罪要求二人以上共同故意犯罪','教唆不满18周岁的人犯罪的应当从重处罚','帮助犯是从犯的一种','共同犯罪中只要一人既遂全部共犯均既遂'],answer:[0,1,2],explain:'A正确共同犯罪要求二人以上共同故意犯罪。B正确教唆不满18周岁的人犯罪从重处罚。C正确帮助犯属于从犯。D错误部分犯罪中可能存在部分既遂部分未遂。',src:'2022真题考点'},
+  {id:'k82',subjectId:'x',chapter:'累犯',type:'multiple',q:'关于累犯的认定下列哪些选项是正确的？',opts:['一般累犯要求前后罪均为故意犯罪','前罪必须被判处有期徒刑以上刑罚','后罪必须在前罪刑罚执行完毕或赦免后五年内实施','特别累犯不受五年期限限制'],answer:[0,1,2,3],explain:'一般累犯：前后罪均为故意犯罪；前罪被判有期徒刑以上；后罪在前罪刑罚执行完毕或赦免后五年内。特别累犯不受五年期限限制。全部正确。',src:'2023真题考点'},
+  {id:'k83',subjectId:'x',chapter:'自首与立功',type:'multiple',q:'关于自首与立功下列哪些选项是正确的？',opts:['犯罪后自动投案并如实供述自己罪行的是自首','被采取强制措施的犯罪嫌疑人如实供述司法机关还未掌握的本人其他罪行的以自首论','犯罪分子有揭发他人犯罪行为查证属实的构成立功','自首的犯罪分子可以从轻或减轻处罚'],answer:[0,1,2,3],explain:'A为一般自首；B为特别自首；C为立功；D正确自首可以从轻或减轻处罚犯罪较轻的可以免除处罚。全部正确。',src:'2024真题考点'},
+  {id:'k84',subjectId:'x',chapter:'缓刑',type:'indefinite',q:'关于缓刑的适用条件下列哪些选项是正确的？',opts:['适用缓刑要求被判处拘役或三年以下有期徒刑','犯罪情节较轻','有悔罪表现','宣告缓刑对所居住社区没有重大不良影响'],answer:[0,1,2,3],explain:'缓刑适用条件：判处拘役或三年以下有期徒刑；犯罪情节较轻；有悔罪表现；没有再犯罪危险；宣告缓刑对所居住社区没有重大不良影响。累犯和犯罪集团首要分子不适用缓刑。全部正确。',src:'2022真题考点'},
+  {id:'k85',subjectId:'x',chapter:'减刑假释',type:'indefinite',q:'关于假释的适用下列哪些选项是正确的？',opts:['假释要求执行原判刑期二分之一以上','假释要求犯罪分子认真遵守监规接受教育改造','假释要求没有再犯罪危险','累犯不得假释'],answer:[0,1,2,3],explain:'假释条件：执行原判刑期二分之一以上（无期徒刑实际执行十三年以上）；认真遵守监规接受教育改造；确有悔改表现没有再犯罪危险。累犯和因暴力性犯罪被判十年以上不得假释。全部正确。',src:'2023真题考点'},
+  {id:'k86',subjectId:'x',chapter:'转化型抢劫',type:'tf',q:'犯盗窃诈骗抢夺罪为窝藏赃物抗拒抓捕或者毁灭罪证而当场使用暴力的依照抢劫罪定罪处罚。',opts:['正确','错误'],answer:0,explain:'正确。刑法第269条转化型抢劫：犯盗窃诈骗抢夺罪为窝藏赃物抗拒抓捕或毁灭罪证而当场使用暴力或以暴力相威胁的依照抢劫罪定罪处罚。关键是当场使用暴力。',src:'2022真题考点'},
+  {id:'k87',subjectId:'x',chapter:'财产犯罪',type:'single',q:'甲在商场假装看手机趁营业员不备将展示柜上的手机偷偷放入口袋离开。甲的行为构成？',opts:['诈骗罪','盗窃罪','侵占罪','抢夺罪'],answer:1,explain:'甲以非法占有为目的秘密窃取他人财物构成盗窃罪。诈骗罪要求被害人基于错误认识自愿处分财产本案营业员并未处分财产。',src:'2024真题考点'},
+  {id:'k88',subjectId:'x',chapter:'职务犯罪',type:'single',q:'甲为某民营公司采购经理利用职务便利收受供应商回扣20万元为供应商谋取利益。甲的行为构成？',opts:['受贿罪','非国家工作人员受贿罪','职务侵占罪','行贿罪'],answer:1,explain:'甲为非国有公司人员利用职务便利收受回扣为他人谋利构成非国家工作人员受贿罪。受贿罪主体为国家工作人员。',src:'2023真题考点'},
+  {id:'k89',subjectId:'x',chapter:'危险驾驶',type:'multiple',q:'关于危险驾驶罪下列哪些选项是正确的？',opts:['在道路上醉酒驾驶机动车的构成危险驾驶罪','在道路上追逐竞驶情节恶劣的构成危险驾驶罪','从事校车业务严重超过额定乘员载客的构成危险驾驶罪','危险驾驶罪最高刑为拘役'],answer:[0,1,2,3],explain:'危险驾驶罪包括：追逐竞驶情节恶劣；醉酒驾驶机动车；从事校车或旅客运输严重超载或严重超速；违反危化品安全管理规定运输危化品。最高刑为拘役并处罚金。全部正确。',src:'2022真题考点'},
+  {id:'k90',subjectId:'x',chapter:'交通肇事',type:'indefinite',q:'关于交通肇事罪下列哪些选项是正确的？',opts:['违反交通运输管理法规因而发生重大事故致人重伤死亡或重大财产损失的构成交通肇事罪','交通肇事后逃逸的属于加重情节','因逃逸致人死亡的处七年以上有期徒刑','交通肇事罪只能由过失构成'],answer:[0,1,2,3],explain:'交通肇事罪：违反交规发生重大事故（基本犯）；肇事后逃逸（加重情节3-7年）；因逃逸致人死亡（7年以上）。主观为过失。全部正确。',src:'2024真题考点'},
+  {id:'k91',subjectId:'x',chapter:'贪污罪',type:'tf',q:'受国家机关委托管理国有财产的人员利用职务便利侵吞国有财产的构成贪污罪。',opts:['正确','错误'],answer:0,explain:'正确。刑法382条：受国家机关国有公司企业事业单位人民团体委托管理经营国有财产的人员利用职务上的便利侵吞窃取骗取国有财物的以贪污论。',src:'2023真题考点'},
+  {id:'k92',subjectId:'xs',chapter:'辩护制度',type:'single',q:'下列哪一类人员不得担任辩护人？',opts:['正在被执行刑罚的人','被害人的近亲属','律师','人民团体推荐的人'],answer:0,explain:'不得担任辩护人的情形：正在被执行刑罚或处于缓刑假释考验期间的人；被剥夺或限制人身自由的人；无行为能力或限制行为能力的人；法院检察院公安机关现职人员等。',src:'2022真题考点'},
+  {id:'k93',subjectId:'xs',chapter:'辩护制度',type:'multiple',q:'下列哪些情形下犯罪嫌疑人被告人没有委托辩护人的应当通知法律援助机构指派律师辩护？',opts:['未成年犯罪嫌疑人被告人','盲聋哑人','可能被判处无期徒刑或死刑的','尚未完全丧失辨认或控制能力的精神病人'],answer:[0,1,2,3],explain:'强制辩护情形：未成年人；盲聋哑人；尚未完全丧失辨认控制能力的精神病人；可能被判处无期徒刑或死刑的。全部正确。',src:'2023真题考点'},
+  {id:'k94',subjectId:'xs',chapter:'强制措施',type:'indefinite',q:'关于取保候审的适用条件下列哪些选项是正确的？',opts:['可能判处管制拘役或独立适用附加刑的','可能判处有期徒刑以上刑罚采取取保候审不致社会危险的','患有严重疾病生活不能自理的','羁押期限届满案件尚未办结需要采取取保候审的'],answer:[0,1,2,3],explain:'取保候审适用情形：可能判管制拘役或独立附加刑；可能判有期徒刑以上取保不致社会危险；患有严重疾病生活不能自理怀孕或哺乳婴儿的；羁押期限届满案件尚未办结的。全部正确。',src:'2024真题考点'},
+  {id:'k95',subjectId:'xs',chapter:'强制措施',type:'single',q:'关于监视居住下列哪一说法正确？',opts:['监视居住的最长期限为12个月','监视居住不得在指定居所执行','指定居所监视居住的除无法通知外应在24小时内通知家属','监视居住期间不算入刑期折抵'],answer:2,explain:'监视居住期限最长6个月。指定居所监视居住除无法通知外应在执行24小时内通知家属。指定居所监视居住折抵刑期。',src:'2022真题考点'},
+  {id:'k96',subjectId:'xs',chapter:'证据制度',type:'multiple',q:'关于非法证据排除规则下列哪些选项是正确的？',opts:['采用刑讯逼供等非法方法收集的犯罪嫌疑人被告人供述应当排除','收集物证书证不符合法定程序严重影响司法公正的应当补正或合理解释','检察机关对证据收集的合法性承担证明责任','被告人有权申请人民法院排除非法证据'],answer:[0,1,2,3],explain:'A正确刑讯逼供等非法方法收集的言词证据应当排除。B正确物证书证收集程序违法的可能补正或解释不能补正或解释的予以排除。C正确检察院对证据收集合法性承担证明责任。D正确被告人有权申请排除。全部正确。',src:'2022真题考点'},
+  {id:'k97',subjectId:'xs',chapter:'证据制度',type:'indefinite',q:'下列哪些属于刑事诉讼中的法定证据种类？',opts:['物证','被害人陈述','鉴定意见','勘验检查辨认侦查实验等笔录'],answer:[0,1,2,3],explain:'刑事诉讼证据种类（刑诉法50条）：物证；书证；证人证言；被害人陈述；犯罪嫌疑人被告人供述和辩解；鉴定意见；勘验检查辨认侦查实验等笔录；视听资料电子数据。全部正确。',src:'2023真题考点'},
+  {id:'k98',subjectId:'xs',chapter:'认罪认罚从宽',type:'multiple',q:'关于认罪认罚从宽制度下列哪些选项是正确的？',opts:['认罪认罚可以依法从宽处理','认罪认罚适用于所有诉讼阶段','犯罪嫌疑人被告人自愿认罪认罚的应当签署认罪认罚具结书','适用认罪认罚从宽制度的案件可以适用速裁程序'],answer:[0,1,2,3],explain:'认罪认罚从宽适用于各诉讼阶段；自愿如实供述罪行承认指控事实愿意接受处罚的可以依法从宽；应当签署具结书；符合条件可适用速裁程序。全部正确。',src:'2024真题考点'},
+  {id:'k99',subjectId:'xs',chapter:'侦查与羁押',type:'tf',q:'对犯罪嫌疑人逮捕后的侦查羁押期限不得超过二个月案情复杂期满不能终结的经上一级检察院批准可以延长一个月。',opts:['正确','错误'],answer:0,explain:'正确。刑诉法156条：逮捕后侦查羁押期限不得超过2个月；案情复杂期满不能终结的经上一级检察院批准延长1个月。',src:'2022真题考点'},
+  {id:'k100',subjectId:'xs',chapter:'审查起诉',type:'indefinite',q:'关于不起诉的种类下列哪些选项是正确的？',opts:['法定不起诉（犯罪嫌疑人没有犯罪事实或符合法定不追诉情形的）','酌定不起诉（犯罪情节轻微不需要判处刑罚的）','存疑不起诉（证据不足不符合起诉条件的）','附条件不起诉适用于未成年人犯罪案件'],answer:[0,1,2,3],explain:'不起诉种类：法定不起诉；酌定不起诉；存疑不起诉（证据不足）；附条件不起诉（未成年人涉嫌刑法分则四五六章犯罪可能判一年以下符合条件）。全部正确。',src:'2023真题考点'},
+  {id:'k101',subjectId:'xs',chapter:'一审程序',type:'multiple',q:'关于刑事一审程序下列哪些选项是正确的？',opts:['法院宣告判决一律公开进行','定期宣告判决的应当在宣告后立即送达判决书','判决书应当由审判人员和书记员署名','当庭宣告判决的应当在五日内送达判决书'],answer:[0,1,2,3],explain:'A正确宣告判决一律公开。B正确定期宣判的宣告后立即送达。C正确判决书由审判人员和书记员署名。D正确当庭宣判的5日内送达。全部正确。',src:'2024真题考点'},
+  {id:'k102',subjectId:'xs',chapter:'二审程序',type:'single',q:'第二审人民法院经审理认为原判决事实不清或证据不足的可以怎样处理？',opts:['只能直接改判','只能裁定发回重审','可以在查清事实后改判也可以裁定撤销原判发回重审','必须维持原判'],answer:2,explain:'二审认为原判事实不清或证据不足的可以在查清事实后改判也可以裁定撤销原判发回原审法院重新审判。但发回重审只能一次。',src:'2022真题考点'},
+  {id:'k103',subjectId:'xs',chapter:'审判监督程序',type:'tf',q:'当事人及其法定代理人近亲属对已经发生法律效力的判决裁定可以向人民法院或人民检察院提出申诉申诉期间不停止判决裁定的执行。',opts:['正确','错误'],answer:0,explain:'正确。刑诉法252条：当事人及其法定代理人近亲属对已生效判决裁定可向法院或检察院申诉但不能停止判决裁定的执行。',src:'2023真题考点'},
+  {id:'k104',subjectId:'m',chapter:'担保制度',type:'tf',q:'当事人在保证合同中对保证方式没有约定或约定不明确的按照一般保证承担保证责任。',opts:['正确','错误'],answer:0,explain:'正确。民法典686条：保证方式没有约定或约定不明确的按一般保证承担保证责任。此为民法典重大变化与原担保法（推定连带保证）相反。',src:'2021真题考点'},
+  {id:'k105',subjectId:'m',chapter:'物权·善意取得',type:'multiple',q:'关于善意取得下列哪些选项是正确的？',opts:['善意取得要求受让人受让时为善意','善意取得要求以合理价格转让','善意取得不动产要求已办理登记','善意取得的标的物仅限于动产'],answer:[0,1,2],explain:'善意取得要件：受让人善意；合理价格；已登记（不动产）或已交付（动产）。D错误善意取得既适用于动产也适用于不动产。',src:'2024真题考点'},
+  {id:'k106',subjectId:'m',chapter:'物权·预告登记',type:'single',q:'关于预告登记下列哪一说法正确？',opts:['预告登记后债权消灭的预告登记失效','预告登记后未经预告登记权利人同意处分不动产的无效','预告登记后可以对抗一切第三人','预告登记的效力为永久'],answer:0,explain:'民法典221条：预告登记后债权消灭的预告登记失效；能够进行不动产登记之日起90日内未申请登记的预告登记失效。预告登记后未经同意处分的不发生物权效力。',src:'2023真题考点'},
+  {id:'k107',subjectId:'m',chapter:'合同·格式条款',type:'multiple',q:'关于格式条款下列哪些选项是正确的？',opts:['采用格式条款订立合同应当遵循公平原则确定双方权利义务','提供格式条款一方应当采取合理方式提示免除或限制其责任的条款','提供格式条款一方未履行提示说明义务致使对方没有注意免责条款的对方可以主张该条款不成为合同内容','格式条款与非格式条款不一致的应当采用非格式条款'],answer:[0,1,2,3],explain:'A正确格式条款应遵循公平原则。B正确应合理方式提示免责条款。C正确未提示说明的对方可主张该条款不成为合同内容。D正确格式条款与非格式条款不一致时采用非格式条款。全部正确。',src:'2024真题考点'},
+  {id:'k108',subjectId:'m',chapter:'合同·违约金',type:'single',q:'约定的违约金过分高于造成的损失当事人可以请求人民法院或仲裁机构予以？',opts:['撤销','适当减少','宣布无效','不予执行'],answer:1,explain:'民法典585条：约定的违约金过分高于造成损失当事人可以请求人民法院或仲裁机构予以适当减少。违约金低于损失的可请求增加。',src:'2022真题考点'},
+  {id:'k109',subjectId:'m',chapter:'合同·代位权',type:'single',q:'因债务人怠于行使其债权影响债权人的到期债权实现的债权人可以怎样？',opts:['直接向债务人主张','向人民法院请求以自己的名义代位行使债务人对相对人的权利','直接向相对人追索','申请法院强制执行债务人'],answer:1,explain:'民法典535条：因债务人怠于行使其债权影响债权人到期债权实现的债权人可向人民法院请求以自己的名义代位行使债务人对相对人的权利。',src:'2023真题考点'},
+  {id:'k110',subjectId:'m',chapter:'人格权·隐私与个人信息',type:'multiple',q:'关于隐私权和个人信息保护下列哪些选项是正确的？',opts:['任何组织或个人不得以刺探侵扰泄露公开等方式侵害他人隐私权','处理个人信息应当遵循合法正当必要原则','自然人的个人信息受法律保护','个人信息中的私密信息适用有关隐私权的规定'],answer:[0,1,2,3],explain:'A正确民法典1033条禁止以刺探侵扰等方式侵害隐私。B正确处理个人信息应合法正当必要。C正确。D正确民法典1034条个人信息中私密信息适用隐私权规定。全部正确。',src:'2022真题考点'},
+  {id:'k111',subjectId:'m',chapter:'婚姻家庭·离婚冷静期',type:'single',q:'民法典规定的离婚冷静期制度适用于以下哪种离婚方式？',opts:['诉讼离婚','协议离婚（登记离婚）','法院判决离婚','调解离婚'],answer:1,explain:'离婚冷静期仅适用于协议离婚：自婚姻登记机关收到离婚登记申请之日起30日内任何一方不愿意离婚的可撤回申请。诉讼离婚不适用。',src:'2021真题考点'},
+  {id:'k112',subjectId:'m',chapter:'婚姻家庭·夫妻债务',type:'multiple',q:'关于夫妻共同债务的认定下列哪些选项是正确的？',opts:['夫妻双方共同签名所负的债务属于夫妻共同债务','夫妻一方事后追认等共同意思表示所负的债务属于夫妻共同债务','夫妻一方在婚姻关系存续期间以个人名义为家庭日常生活需要所负的债务属于夫妻共同债务','夫妻一方超出家庭日常生活需要所负的债务不属于夫妻共同债务'],answer:[0,1,2,3],explain:'民法典1064条：共同签名或事后追认的为共同债务；婚姻存续期间一方以个人名义为家庭日常生活需要所负的为共同债务；超出家庭日常生活需要的不属于共同债务（债权人能证明用于共同生活生产经营的除外）。全部正确。',src:'2023真题考点'},
+  {id:'k113',subjectId:'m',chapter:'继承·遗嘱形式',type:'indefinite',q:'民法典规定的遗嘱形式包括哪些？',opts:['自书遗嘱','代书遗嘱','打印遗嘱','录音录像遗嘱'],answer:[0,1,2,3],explain:'民法典规定的遗嘱形式：自书遗嘱、代书遗嘱、打印遗嘱、录音录像遗嘱、口头遗嘱、公证遗嘱。民法典取消了公证遗嘱的优先效力多份遗嘱内容相抵触的以最后所立遗嘱为准。全部正确。',src:'2024真题考点'},
+  {id:'k114',subjectId:'m',chapter:'继承·遗赠扶养协议',type:'single',q:'关于遗赠扶养协议下列哪一说法正确？',opts:['遗赠扶养协议的效力低于遗嘱','遗赠扶养协议签订后扶养人无正当理由不履行义务的可以解除协议','遗赠扶养协议只能与法定继承人签订','遗赠扶养协议是单务合同'],answer:1,explain:'遗赠扶养协议效力优先于遗嘱和法定继承。扶养人无正当理由不履行义务的可以解除协议已支付的供养费用一般不予补偿。可以与自然人或集体组织签订。是双务有偿合同。',src:'2022真题考点'},
+  {id:'k115',subjectId:'m',chapter:'侵权·医疗损害',type:'multiple',q:'关于医疗损害责任下列哪些选项是正确的？',opts:['患者在诊疗活动中受到损害医疗机构及其医务人员有过错的由医疗机构承担赔偿责任','医务人员未尽到与当时医疗水平相应的诊疗义务造成患者损害的医疗机构应当承担赔偿责任','医疗机构隐匿或拒绝提供与纠纷有关的病历资料的推定医疗机构有过错','医疗机构不得泄露患者隐私和个人信息'],answer:[0,1,2,3],explain:'A正确医疗损害适用过错责任由医疗机构承担。B正确未尽诊疗义务造成损害应赔偿。C正确隐匿拒绝提供病历等情形推定过错。D正确不得泄露患者隐私。全部正确。',src:'2023真题考点'},
+  {id:'k116',subjectId:'m',chapter:'侵权·高空抛物',type:'indefinite',q:'关于高空抛物坠物损害责任下列哪些选项是正确的？',opts:['禁止从建筑物中抛掷物品','从建筑物中抛掷物品造成他人损害的由侵权人依法承担侵权责任','经调查难以确定具体侵权人的除能够证明自己不是侵权人的外由可能加害的建筑物使用人给予补偿','物业服务企业等建筑物管理人未采取必要安全保障措施的应当依法承担相应侵权责任'],answer:[0,1,2,3],explain:'民法典1254条：禁止高空抛物；侵权人承担侵权责任；难以确定具体侵权人的可能加害的使用人补偿；物业未采取安全保障措施的承担相应责任。全部正确。',src:'2022真题考点'},
+  {id:'k117',subjectId:'m',chapter:'侵权·网络侵权',type:'single',q:'网络用户利用网络服务实施侵权行为的被侵权人有权通知网络服务提供者采取哪些措施？',opts:['只能向法院起诉','通知网络服务提供者采取删除屏蔽断开链接等必要措施','直接要求网络服务提供者赔偿','要求公安机关介入'],answer:1,explain:'民法典1195条：网络用户利用网络服务实施侵权的被侵权人有权通知网络服务提供者采取删除屏蔽断开链接等必要措施。未及时采取必要措施的对损害扩大部分承担连带责任。',src:'2024真题考点'},
+  {id:'k118',subjectId:'m',chapter:'物权·居住权',type:'tf',q:'居住权无偿设立但是当事人另有约定的除外。居住权自登记时设立。',opts:['正确','错误'],answer:0,explain:'正确。民法典366条：居住权无偿设立但当事人另有约定除外。368条：居住权自登记时设立。居住权不得转让继承设立居住权的住宅不得出租。',src:'2021真题考点'},
+  {id:'k119',subjectId:'ms',chapter:'管辖·级别管辖',type:'single',q:'中级人民法院管辖下列哪一类民事案件？',opts:['所有涉外民事案件','重大涉外案件','所有合同纠纷案件','所有侵权案件'],answer:1,explain:'中级法院管辖：重大涉外案件；在本辖区有重大影响的案件；最高法院确定由中级法院管辖的案件。并非所有涉外案件都由中级法院管辖。',src:'2022真题考点'},
+  {id:'k120',subjectId:'ms',chapter:'管辖·协议管辖',type:'multiple',q:'关于协议管辖下列哪些选项是正确的？',opts:['协议管辖适用于合同纠纷和其他财产权益纠纷','协议管辖必须以书面形式约定','协议管辖选择的法院必须与争议有实际联系','协议管辖不得违反级别管辖和专属管辖的规定'],answer:[0,1,2,3],explain:'A正确合同和其他财产权益纠纷可协议管辖。B正确须书面约定。C正确须与争议有实际联系。D正确不得违反级别和专属管辖。全部正确。',src:'2023真题考点'},
+  {id:'k121',subjectId:'ms',chapter:'当事人·第三人',type:'indefinite',q:'关于民事诉讼中的第三人下列哪些选项是正确的？',opts:['有独立请求权的第三人对当事人双方的诉讼标的有独立请求权','有独立请求权第三人有权提起诉讼','无独立请求权第三人对双方争议的诉讼标的没有独立请求权但案件处理结果与其有法律上的利害关系','人民法院判决承担民事责任的无独立请求权第三人有权提起上诉'],answer:[0,1,2,3],explain:'A正确有独立请求权第三人对诉讼标的有独立请求权。B正确可提起诉讼。C正确无独立请求权第三人无独立请求权但结果有法律上利害关系。D正确判决承担民事责任的有权上诉。全部正确。',src:'2024真题考点'},
+  {id:'k122',subjectId:'ms',chapter:'证据·举证责任',type:'multiple',q:'关于民事诉讼举证责任的分配下列哪些选项是正确的？',opts:['当事人对自己提出的主张有责任提供证据','因新产品制造方法发明专利引起的专利侵权诉讼由制造同样产品的单位或个人对其产品制造方法不同于专利方法承担举证责任','建筑物上的搁置物悬挂物发生脱落坠落致人损害的由所有人或管理人对自己没有过错承担举证责任','饲养动物致人损害的由被侵权人承担动物有无过错的举证责任'],answer:[0,1,2],explain:'A正确谁主张谁举证。B正确方法专利举证责任倒置。C正确建筑物脱落坠落适用过错推定由所有人管理人举证无过错。D错误饲养动物致害适用无过错责任不要求被侵权人承担过错举证。',src:'2022真题考点'},
+  {id:'k123',subjectId:'ms',chapter:'审判程序·简易程序',type:'tf',q:'基层人民法院及其派出法庭审理事实清楚权利义务关系明确争议不大的简单民事案件适用简易程序。',opts:['正确','错误'],answer:0,explain:'正确。民诉法160条：基层法院及其派出法庭审理事实清楚权利义务关系明确争议不大的简单民事案件适用简易程序。中级法院不适用简易程序。',src:'2023真题考点'},
+  {id:'k124',subjectId:'ms',chapter:'审判程序·再审',type:'indefinite',q:'关于民事诉讼再审的申请下列哪些选项是正确的？',opts:['当事人对已经发生法律效力的判决认为有错误的可以向上一级人民法院申请再审','当事人申请再审不停止判决的执行','申请再审应当在判决发生法律效力后六个月内提出','法院认为再审申请有理由的可以裁定中止原判决的执行'],answer:[0,1,2,3],explain:'A正确向上一级法院申请再审。B正确再审申请不停止执行。C正确6个月内提出。D正确法院可裁定中止执行。全部正确。',src:'2024真题考点'},
+  {id:'k125',subjectId:'ms',chapter:'执行程序·执行异议',type:'single',q:'案外人对执行标的提出书面异议的人民法院应当自收到异议之日起多少日内审查？',opts:['7日','15日','30日','60日'],answer:1,explain:'民诉法234条：案外人对执行标的提出书面异议的法院应当自收到书面异议之日起15日内审查。理由成立的裁定中止执行；理由不成立的裁定驳回。',src:'2022真题考点'},
+  {id:'k126',subjectId:'ms',chapter:'管辖·专属管辖',type:'single',q:'下列哪一类案件不属于专属管辖？',opts:['因不动产纠纷提起的诉讼','因港口作业中发生纠纷提起的诉讼','因继承遗产纠纷提起的诉讼','因合同纠纷提起的诉讼'],answer:3,explain:'专属管辖：不动产纠纷（不动产所在地）；港口作业纠纷（港口所在地）；继承遗产纠纷（被继承人死亡时住所地或主要遗产所在地）。合同纠纷适用一般地域管辖或协议管辖。',src:'2023真题考点'},
+  {id:'k127',subjectId:'ms',chapter:'证据·自认',type:'tf',q:'在诉讼过程中一方当事人陈述的于己不利的事实或者对于己不利的事实明确表示承认的另一方当事人无需举证证明。',opts:['正确','错误'],answer:0,explain:'正确。民事诉讼证据规定：一方当事人陈述的于己不利的事实或对于己不利事实明确表示承认的另一方无需举证。自认的事实法院应当予以确认。',src:'2024真题考点'},
+  {id:'k128',subjectId:'ms',chapter:'审判程序·小额诉讼',type:'multiple',q:'关于小额诉讼程序下列哪些选项是正确的？',opts:['小额诉讼程序适用于基层法院审理的事实清楚权利义务关系明确争议不大的简单金钱给付案件','小额诉讼程序实行一审终审','小额诉讼程序的标的额为各省自治区直辖市上年度就业人员年平均工资的百分之五十以下','小额诉讼程序可以转换为简易程序或普通程序'],answer:[0,1,2,3],explain:'A正确适用条件。B正确一审终审不得上诉。C正确标的额标准。D正确法院发现不宜适用的可转为简易或普通程序。全部正确。',src:'2023真题考点'},
+  {id:'k129',subjectId:'xz',chapter:'行政处罚·种类',type:'multiple',q:'根据2021年新修订的《行政处罚法》行政处罚的种类包括哪些？',opts:['警告通报批评','罚款没收违法所得','暂扣许可证件降低资质等级','行政拘留'],answer:[0,1,2,3],explain:'2021年《行政处罚法》第9条处罚种类：警告通报批评；罚款没收没收违法所得；暂扣许可证件降低资质等级吊销许可证件；限制开展生产经营活动责令停产停业责令关闭限制从业；行政拘留等。全部正确。',src:'2021真题考点'},
+  {id:'k130',subjectId:'xz',chapter:'行政处罚·听证',type:'indefinite',q:'关于行政处罚的听证程序下列哪些选项是正确的？',opts:['拟作出较大数额罚款处罚的当事人可以要求听证','拟作出没收较大数额违法所得没收较大价值非法财物的当事人可以要求听证','拟作出降低资质等级吊销许可证件的当事人可以要求听证','拟作出责令停产停业责令关闭限制从业的当事人可以要求听证'],answer:[0,1,2,3],explain:'2021年《行政处罚法》63条：较大数额罚款；没收较大数额违法所得较大价值非法财物；降低资质等级吊销许可证件；责令停产停业责令关闭限制从业等情形当事人可要求听证。全部正确。',src:'2022真题考点'},
+  {id:'k131',subjectId:'xz',chapter:'行政复议·复议范围',type:'multiple',q:'根据2023年新修订的《行政复议法》下列情形中公民法人可以申请行政复议的有？',opts:['对行政机关作出的行政处罚决定不服','对行政机关作出的行政强制措施不服','对行政机关作出的行政许可决定不服','认为行政机关不依法履行政府信息公开职责'],answer:[0,1,2,3],explain:'2023年《行政复议法》扩大了复议范围包括行政处罚、行政强制措施、行政许可、行政确认、行政征收征用、政府信息公开等。全部正确。',src:'2024真题考点'},
+  {id:'k132',subjectId:'xz',chapter:'行政复议·复议机关',type:'single',q:'对省级人民政府的具体行政行为不服的复议机关是？',opts:['国务院','该省级人民政府自身','该省级人民政府的上一级主管部门','最高人民法院'],answer:1,explain:'对省级人民政府具体行政行为不服的向该省级人民政府申请行政复议（自我复议）。对复议决定不服的可以向法院提起行政诉讼或向国务院申请裁决。',src:'2022真题考点'},
+  {id:'k133',subjectId:'xz',chapter:'行政诉讼·起诉条件',type:'indefinite',q:'提起行政诉讼应当符合下列哪些条件？',opts:['原告是符合规定的公民法人或其他组织','有明确的被告','有具体的诉讼请求和事实根据','属于人民法院受案范围和受诉人民法院管辖'],answer:[0,1,2,3],explain:'行政诉讼法49条起诉条件：原告适格；有明确被告；有具体诉讼请求和事实根据；属于法院受案范围和受诉法院管辖。全部正确。',src:'2023真题考点'},
+  {id:'k134',subjectId:'xz',chapter:'行政诉讼·举证责任',type:'tf',q:'在行政诉讼中被告对作出的行政行为承担举证责任应当提供作出该行政行为的证据和所依据的规范性文件。',opts:['正确','错误'],answer:0,explain:'正确。行政诉讼法34条：被告对作出的行政行为负有举证责任应当提供作出该行政行为的证据和所依据的规范性文件。被告不得在诉讼中自行向原告第三人和证人收集证据。',src:'2024真题考点'},
+  {id:'k135',subjectId:'xz',chapter:'行政强制',type:'single',q:'下列哪一项属于行政强制执行而非行政强制措施？',opts:['查封场所设施或财物','扣押财物','冻结存款汇款','代履行'],answer:3,explain:'行政强制措施：查封、扣押、冻结、限制人身自由等。行政强制执行：加处罚款、划拨存款、拍卖财产、代履行等。代履行属于行政强制执行。',src:'2022真题考点'},
+  {id:'k136',subjectId:'xz',chapter:'国家赔偿',type:'multiple',q:'下列哪些情形属于行政赔偿范围？',opts:['违法拘留或违法采取限制公民人身自由的行政强制措施','违法征收征用财产','违法罚款吊销许可证','行政机关工作人员与行使职权无关的个人行为造成损害的'],answer:[0,1,2],explain:'ABC正确均属于行政赔偿范围。D错误与行使职权无关的个人行为不属于国家赔偿范围。',src:'2023真题考点'},
+  {id:'k137',subjectId:'xz',chapter:'行政许可·撤销与注销',type:'tf',q:'行政许可的撤销与注销是同一概念均指因行政机关违法作出准予行政许可决定而使该许可失去效力。',opts:['正确','错误'],answer:1,explain:'错误。撤销和注销是不同概念。撤销是因行政机关违法作出许可决定或被许可人以欺骗贿赂等不正当手段取得许可而依法撤销。注销是因许可期限届满主体资格消灭等特定事实出现而办理的退出手续不是处罚。',src:'2024真题考点'},
+  {id:'k138',subjectId:'xz',chapter:'行政处罚·一事不再罚',type:'single',q:'根据《行政处罚法》对当事人的同一个违法行为不得给予几次以上罚款的行政处罚？',opts:['一次','两次','三次','无限制'],answer:1,explain:'2021年《行政处罚法》第29条：对当事人的同一个违法行为不得给予两次以上罚款的行政处罚。同一个违法行为违反多个法律规范应当给予罚款处罚的按罚款数额高的规定处罚。',src:'2022真题考点'},
+  {id:'k139',subjectId:'sjz',chapter:'公司法·注册资本',type:'single',q:'根据2023年新修订的《公司法》有限责任公司全体股东认缴的出资额由股东按照公司章程的规定自公司成立之日起几年内缴足？',opts:['3年','5年','10年','无期限'],answer:1,explain:'2023年《公司法》第47条（2024年7月1日施行）：全体股东认缴的出资额由股东按照公司章程的规定自公司成立之日起五年内缴足。此为新公司法重大变化取消了完全认缴制。',src:'2024真题考点'},
+  {id:'k140',subjectId:'sjz',chapter:'公司法·股东权利',type:'multiple',q:'关于有限责任公司股东的权利下列哪些选项是正确的？',opts:['股东有权查阅复制公司章程股东会会议记录董事会会议决议','股东可以要求查阅公司会计账簿会计凭证','股东按照实缴的出资比例分取红利','股东向股东以外的人转让股权应当经其他股东过半数同意'],answer:[0,1,2],explain:'A正确股东有权查阅复制章程会议记录等。B正确2023新公司法增加可查阅会计凭证。C正确按实缴出资比例分红。D错误2023新公司法取消了股权转让需其他股东过半数同意的规定改为其他股东有优先购买权。',src:'2024真题考点'},
+  {id:'k141',subjectId:'sjz',chapter:'公司法·董监高义务',type:'indefinite',q:'关于公司董事监事高级管理人员的义务下列哪些选项是正确的？',opts:['董事监事高管应当遵守法律行政法规和公司章程对公司负有忠实义务和勤勉义务','董事高管不得挪用公司资金','董事高管不得未经股东会同意与公司订立合同或进行交易','董事高管违反法律法规章程给公司造成损失的应当承担赔偿责任'],answer:[0,1,2,3],explain:'A正确忠实勤勉义务。B正确不得挪用资金。C正确自我交易禁止。D正确违法违章给公司造成损失应赔偿。全部正确。',src:'2023真题考点'},
+  {id:'k142',subjectId:'sjz',chapter:'破产法·破产财产',type:'multiple',q:'关于破产财产下列哪些选项是正确的？',opts:['破产申请受理时属于债务人的全部财产为债务人财产','债务人财产在破产宣告后称为破产财产','已作为担保物的财产不属于破产财产','破产财产由管理人依法管理和处分'],answer:[0,1,3],explain:'A正确受理时债务人全部财产为债务人财产。B正确破产宣告后债务人财产称破产财产。C错误已设定担保的财产仍属破产财产但担保权人对该财产享有优先受偿权。D正确管理人管理处分。',src:'2022真题考点'},
+  {id:'k143',subjectId:'sjz',chapter:'知识产权·著作权',type:'indefinite',q:'根据《著作权法》下列哪些属于受保护的作品？',opts:['文字作品','口述作品','音乐戏剧曲艺舞蹈杂技艺术作品','计算机软件'],answer:[0,1,2,3],explain:'著作权法第3条作品类型：文字作品；口述作品；音乐戏剧曲艺舞蹈杂技艺术作品；美术摄影作品；电影作品；图形作品模型作品；计算机软件等。全部正确。',src:'2023真题考点'},
+  {id:'k144',subjectId:'sjz',chapter:'知识产权·职务发明',type:'single',q:'关于职务发明的专利申请权下列哪一说法正确？',opts:['职务发明的专利申请权属于发明人','职务发明的专利申请权属于该单位','职务发明的专利申请权属于发明人和单位共有','职务发明的专利申请权由双方协商确定'],answer:1,explain:'专利法6条：执行本单位的任务或主要利用本单位物质技术条件所完成的发明创造为职务发明创造。职务发明创造申请专利的权利属于该单位。单位取得专利权后应当对发明人给予奖励。',src:'2022真题考点'},
+  {id:'k145',subjectId:'sjz',chapter:'知识产权·商标',type:'tf',q:'商标注册人可以通过签订商标使用许可合同许可他人使用其注册商标许可人应当监督被许可人使用该注册商标的商品质量。',opts:['正确','错误'],answer:0,explain:'正确。商标法43条：商标注册人可以通过签订使用许可合同许可他人使用其注册商标。许可人应当将其商标使用许可报商标局备案。许可人应当监督被许可人使用其注册商标的商品质量。',src:'2024真题考点'},
+  {id:'k146',subjectId:'sjz',chapter:'经济法·反垄断',type:'multiple',q:'根据《反垄断法》下列哪些属于垄断行为？',opts:['经营者达成垄断协议','经营者滥用市场支配地位','具有或者可能具有排除限制竞争效果的经营者集中','行政机关和法律授权的具有管理公共事务职能的组织滥用行政权力排除限制竞争'],answer:[0,1,2,3],explain:'反垄断法第3条垄断行为：经营者达成垄断协议；经营者滥用市场支配地位；具有或可能具有排除限制竞争效果的经营者集中。行政机关和具有管理公共事务职能的组织不得滥用行政权力排除限制竞争。全部正确。',src:'2024真题考点'},
+  {id:'k147',subjectId:'ll',chapter:'法理学·法律渊源',type:'multiple',q:'下列哪些属于当代中国的正式法律渊源？',opts:['宪法','法律','行政法规','国际条约和惯例'],answer:[0,1,2,3],explain:'中国正式法律渊源：宪法；法律；行政法规；地方性法规；自治条例和单行条例；规章；国际条约和惯例。正式渊源具有普遍约束力。习惯、判例、政策属于非正式渊源。全部正确。',src:'2022真题考点'},
+  {id:'k148',subjectId:'ll',chapter:'法理学·法律关系',type:'single',q:'引起法律关系产生变更或消灭的法律事实中以当事人的意志为转移的是？',opts:['法律事件','法律行为','自然事实','社会事实'],answer:1,explain:'法律事实分为法律事件（不以当事人意志为转移如自然灾害、人的出生死亡）和法律行为（以当事人意志为转移如签订合同、结婚）。法律行为引起法律关系变动。',src:'2023真题考点'},
+  {id:'k149',subjectId:'ll',chapter:'宪法·国家机构',type:'indefinite',q:'关于我国国家机构下列哪些选项是正确的？',opts:['全国人民代表大会是最高国家权力机关','国务院是最高国家权力机关的执行机关是最高国家行政机关','国家监察委员会是最高监察机关','最高人民法院是最高审判机关'],answer:[0,1,2,3],explain:'A正确全国人大是最高国家权力机关。B正确国务院是最高行政机关。C正确国家监察委员会是最高监察机关（2018宪法修正案设立）。D正确最高法院是最高审判机关。全部正确。',src:'2024真题考点'},
+  {id:'k150',subjectId:'ll',chapter:'宪法·公民权利',type:'multiple',q:'关于公民的基本权利和义务下列哪些选项是正确的？',opts:['中华人民共和国公民有言论出版集会结社游行示威的自由','中华人民共和国公民有宗教信仰自由','中华人民共和国公民的人身自由不受侵犯','中华人民共和国公民有依照法律纳税的义务'],answer:[0,1,2,3],explain:'A正确宪法35条言论出版集会结社游行示威自由。B正确宪法36条宗教信仰自由。C正确宪法37条人身自由不受侵犯。D正确宪法56条依法纳税义务。全部正确。',src:'2022真题考点'},
+  {id:'k151',subjectId:'ll',chapter:'法治思想',type:'tf',q:'习近平法治思想的根本立足点是坚持以人民为中心推进全面依法治国根本目的是依法保障人民权益。',opts:['正确','错误'],answer:0,explain:'正确。习近平法治思想核心要义之一：全面依法治国最广泛最深厚的基础是人民必须坚持以人民为中心根本目的是依法保障人民权益。',src:'2023真题考点'},
+  {id:'k152',subjectId:'ll',chapter:'司法制度·律师',type:'single',q:'律师担任辩护人或者诉讼代理人的应当自接受委托之日起多少日内告知办理案件的机关？',opts:['3日','5日','7日','10日'],answer:0,explain:'律师法及刑诉法相关规定：律师担任辩护人接受委托后应当及时告知办理案件的机关。自接受委托之日起3个工作日内告知。',src:'2024真题考点'},
+  {id:'k153',subjectId:'ll',chapter:'法律职业道德',type:'indefinite',q:'关于法官检察官的职业伦理下列哪些选项是正确的？',opts:['法官检察官不得在企事业单位兼职','法官检察官不得以律师身份担任诉讼代理人或辩护人','法官检察官离任后不得担任原任职法院检察院办理案件的诉讼代理人或辩护人','法官检察官应当保持中立公正廉洁'],answer:[0,1,2,3],explain:'A正确不得在企业兼职。B正确不得以律师身份担任诉讼代理人辩护人。C正确离任后竞业禁止。D正确应保持中立公正廉洁。全部正确。',src:'2022真题考点'},
+  {id:'k154',subjectId:'ll',chapter:'法理学·法律解释',type:'multiple',q:'关于法律解释下列哪些选项是正确的？',opts:['立法解释属于有权解释具有普遍约束力','司法解释是最高法院和最高检察院在审判检察工作中具体应用法律问题的解释','学理解释不具有法律约束力','行政解释是国务院及其部门在行政执法中对具体应用法律问题的解释'],answer:[0,1,2,3],explain:'A正确立法解释由全国人大常委会作出具有普遍约束力。B正确司法解释由两高作出。C正确学理解释属无权解释不具有约束力。D正确行政解释是行政执法中的解释。全部正确。',src:'2023真题考点'},
+  {id:'k155',subjectId:'sg',chapter:'国际公法·联合国',type:'single',q:'联合国大会关于重要问题的决定需要以何种方式通过？',opts:['半数以上赞成','三分之二多数赞成','全体一致同意','四分之三多数赞成'],answer:1,explain:'联合国大会关于重要问题（如维持国际和平与安全的建议、选举安理会理事国、接纳新会员、预算等）的决定以到会及投票的三分之二多数通过。其他问题以半数以上通过。',src:'2022真题考点'},
+  {id:'k156',subjectId:'sg',chapter:'国际公法·海洋法',type:'multiple',q:'根据《联合国海洋法公约》下列关于海洋区域的说法哪些是正确的？',opts:['领海宽度不超过12海里','专属经济区从领海基线量起不超过200海里','大陆架自然延伸不足200海里的可扩展至200海里','公海对所有国家开放'],answer:[0,1,2,3],explain:'A正确领海不超过12海里。B正确专属经济区不超过200海里。C正确大陆架不足200海里可扩展至200海里（最大不超过350海里）。D正确公海自由原则。全部正确。',src:'2023真题考点'},
+  {id:'k157',subjectId:'sg',chapter:'国际私法·合同',type:'indefinite',q:'关于涉外合同的法律适用下列哪些选项是正确的？',opts:['当事人可以协议选择合同适用的法律','当事人没有选择的适用履行义务最能体现该合同特征的一方当事人经常居所地法律','消费者合同适用消费者经常居所地法律','劳动合同适用劳动者工作地法律'],answer:[0,1,2,3],explain:'A正确意思自治原则。B正确无选择时最密切联系原则。C正确消费者合同适用消费者经常居所地法（消费者有选择除外）。D正确劳动合同适用工作地法。全部正确。',src:'2024真题考点'},
+  {id:'k158',subjectId:'sg',chapter:'国际经济法·CISG',type:'multiple',q:'关于《联合国国际货物销售合同公约》(CISG)下列哪些选项是正确的？',opts:['公约适用于营业地在不同缔约国的当事人之间所订立的货物买卖合同','公约不适用于拍卖和依法令执行的扣押物品买卖','公约不涉及合同的效力或其任何条款的效力','公约不涉及合同对所售货物所有权的影响'],answer:[0,1,2,3],explain:'A正确公约适用范围。B正确公约排除了拍卖和扣押物买卖。C正确公约第4条不涉及合同效力。D正确公约第4条不涉及所有权转移。全部正确。',src:'2022真题考点'},
+  {id:'k159',subjectId:'sg',chapter:'国际经济法·贸易术语',type:'tf',q:'在CIF术语下卖方负责办理运输和保险并支付运费和保险费但风险在货物装上船时转移给买方。',opts:['正确','错误'],answer:0,explain:'正确。CIF（Cost Insurance and Freight）：卖方负责租船订舱办理保险支付运费和保险费。风险转移以装运港货物装上船时为界（Incoterms 2020修改）。CIF属于象征性交货。',src:'2023真题考点'},
+  {id:'k160',subjectId:'sg',chapter:'国际私法·扶养',type:'single',q:'涉外扶养的法律适用根据我国《涉外民事关系法律适用法》适用？',opts:['扶养人的本国法','被扶养人的本国法','一方当事人经常居所地法律或国籍国法律中有利于被扶养人的法律','法院地法'],answer:2,explain:'涉外民事关系法律适用法第29条：扶养适用一方当事人经常居所地法律、国籍国法律或者主要财产所在地法律中有利于被扶养人的法律。体现了弱者保护原则。',src:'2024真题考点'},
 ];
 
 /* ===================== 存储 ===================== */
@@ -663,8 +763,29 @@ let entjIdx=0;
 function renderEntj(){document.getElementById('entjTip').textContent='💡 '+ENTJ_TIPS[entjIdx%ENTJ_TIPS.length];}
 function rotateEntj(){entjIdx++;renderEntj();}
 
-/* ===================== 刷题练习（全屏一题一页） ===================== */
-let curSession=[],curIdx=0,curCount=0,curCorrect=0,curChapterStats={},curAnswered=[];
+/* ===================== 刷题练习（全屏一题一页·四种题型） ===================== */
+let curSession=[],curIdx=0,curCount=0,curCorrect=0,curWrongCount=0,curChapterStats={},curAnswered=[],curWrongIds=[];
+function getQType(it){ return it.type||'single'; }
+function typeLabel(t){ return {single:'单选',multiple:'多选',indefinite:'不定项',tf:'判断'}[t]||'单选'; }
+function checkAnswer(it,userAns){
+  const t=getQType(it);
+  if(t==='multiple'||t==='indefinite'){
+    if(!Array.isArray(userAns)||!Array.isArray(it.answer))return false;
+    if(userAns.length!==it.answer.length)return false;
+    const s=new Set(userAns);
+    return it.answer.every(a=>s.has(a));
+  }
+  return userAns===it.answer;
+}
+function formatAnswer(it,ans){
+  const t=getQType(it);
+  if(t==='multiple'||t==='indefinite'){
+    if(!Array.isArray(ans))return '?';
+    return ans.slice().sort((a,b)=>a-b).map(i=>'ABCD'[i]).join('');
+  }
+  if(t==='tf')return ans===0?'正确':'错误';
+  return ans>=0?'ABCD'[ans]:'?';
+}
 function fillPracticeSelectors(){
   const ps=document.getElementById('pfSubject');
   if(ps.options.length===0){
@@ -698,51 +819,94 @@ function renderPracticeHistory(){
       const b=state.bank.find(x=>x.id===p.bankId);
       const t=new Date(p.ts);
       const timeStr=(t.getMonth()+1)+'/'+t.getDate()+' '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
+      const tl=b?typeLabel(getQType(b)):'';
       return '<div class="brush-rec"><div class="b-meta">'+
         (b?'<b>'+escapeHtml(b.q.length>40?b.q.slice(0,40)+'…':b.q)+'</b><br>':'<b>'+escapeHtml(p.bankId)+'</b><br>')+
-        '<span style="color:var(--text-3)">'+subjName(p.subjectId)+' · '+(p.chapter||'')+' · '+timeStr+'</span></div>'+
+        '<span style="color:var(--text-3)">'+subjName(p.subjectId)+' · '+(p.chapter||'')+(tl?' · '+tl:'')+' · '+timeStr+'</span></div>'+
         '<span class="acc-badge '+(p.correct?'acc-good':'acc-bad')+'">'+(p.correct?'✓ 正确':'✗ 错误')+'</span></div>';
     }).join('');
 }
-function startPractice(){
+function startPractice(wrongOnly){
   const sid=document.getElementById('pfSubject').value;
   const ch=document.getElementById('pfChapter').value;
-  const n=Math.max(1,+document.getElementById('pfNum').value||5);
-  let pool=state.bank.filter(b=>(sid==='all'||b.subjectId===sid)&&(!ch||b.chapter===ch));
-  if(!pool.length){alert('该范围暂无题目，请换条件');return;}
+  const qt=document.getElementById('pfType').value;
+  const n=Math.max(1,+document.getElementById('pfNum').value||10);
+  let pool;
+  if(wrongOnly){
+    pool=state.bank.filter(b=>state.wrong[b.id]&&!state.wrong[b.id].mastered);
+  }else{
+    pool=state.bank.filter(b=>{
+      if(sid!=='all'&&b.subjectId!==sid)return false;
+      if(ch&&b.chapter!==ch)return false;
+      if(qt!=='all'&&getQType(b)!==qt)return false;
+      return true;
+    });
+  }
+  if(!pool.length){alert(wrongOnly?'错题本为空，暂无错题可练':'该范围暂无题目，请换条件');return;}
   pool=shuffle(pool).slice(0,Math.min(n,pool.length));
-  curSession=pool;curIdx=0;curCount=0;curCorrect=0;curChapterStats={};
+  curSession=pool;curIdx=0;curCount=0;curCorrect=0;curWrongCount=0;curChapterStats={};
   curAnswered=new Array(pool.length).fill(null);
-  document.getElementById('quizTitle').textContent='刷题练习 · '+(sid==='all'?'全部科目':subjName(sid))+(ch?' · '+ch:'');
+  curWrongIds=[];
+  document.getElementById('quizTitle').textContent=(wrongOnly?'错题重练':'刷题练习')+' · '+(sid==='all'?'全部科目':subjName(sid))+(ch?' · '+ch:'')+(qt!=='all'?' · '+typeLabel(qt):'');
   document.getElementById('quizMode').classList.remove('hidden');
   document.body.style.overflow='hidden';
   renderQuizQuestion();
 }
+let quizSelected=[];
 function renderQuizQuestion(){
   const body=document.getElementById('quizBody');
   const bar=document.getElementById('quizFinishBar');
   if(curIdx>=curSession.length){bar.classList.add('hidden');finishQuiz();return;}
   const it=curSession[curIdx];
+  const qt=getQType(it);
   const subj=state.subjects.find(s=>s.id===it.subjectId);
   const answered=curAnswered[curIdx];
   const pct=Math.round((curIdx)/curSession.length*100);
   document.getElementById('quizProgressBar').style.width=pct+'%';
-  document.getElementById('quizCount').textContent=(curIdx+1)+' / '+curSession.length;
+  document.getElementById('quizCount').textContent=(curIdx+1)+' / '+curSession.length+(curWrongCount>0?' · 错'+curWrongCount:'');
+  quizSelected=(answered!==null&&Array.isArray(answered))?[...answered]:(answered!==null?[answered]:[]);
   let html='<div class="quiz-card">';
-  html+='<div class="quiz-meta"><span class="chapter-pill">'+(subj?escapeHtml(subj.name):'')+'</span><span class="chapter-pill">'+escapeHtml(it.chapter||'')+'</span><span class="pill">'+(curIdx+1)+'/'+curSession.length+'</span></div>';
+  html+='<div class="quiz-meta"><span class="quiz-type-badge '+qt+'">'+typeLabel(qt)+'</span><span class="chapter-pill">'+(subj?escapeHtml(subj.name):'')+'</span><span class="chapter-pill">'+escapeHtml(it.chapter||'')+'</span><span class="pill">'+(curIdx+1)+'/'+curSession.length+'</span></div>';
   html+='<div class="quiz-q">'+(curIdx+1)+'. '+escapeHtml(it.q)+'</div>';
-  html+='<div id="quizOptList">'+it.opts.map((o,i)=>{
-    let cls='quiz-opt';
-    if(answered!==null){
-      if(i===it.answer)cls+=' correct';
-      else if(i===answered)cls+=' wrong';
-      else cls+=' disabled';
+  if(qt==='tf'){
+    html+='<div id="quizOptList">'+it.opts.map((o,i)=>{
+      let cls='quiz-opt';
+      if(answered!==null){
+        if(i===it.answer)cls+=' correct';
+        else if(i===answered)cls+=' wrong';
+        else cls+=' disabled';
+      }
+      return '<button class="'+cls+'" style="font-size:16px;text-align:center;padding:18px" '+(answered!==null?'disabled':'')+' onclick="answerQuiz('+i+')">'+escapeHtml(o)+'</button>';
+    }).join('')+'</div>';
+  }else if(qt==='single'){
+    html+='<div id="quizOptList">'+it.opts.map((o,i)=>{
+      let cls='quiz-opt';
+      if(answered!==null){
+        if(i===it.answer)cls+=' correct';
+        else if(i===answered)cls+=' wrong';
+        else cls+=' disabled';
+      }
+      return '<button class="'+cls+'" '+(answered!==null?'disabled':'')+' onclick="answerQuiz('+i+')"><span class="opt-letter">'+'ABCD'[i]+'</span>'+escapeHtml(o)+'</button>';
+    }).join('')+'</div>';
+  }else{
+    html+='<div id="quizOptList">'+it.opts.map((o,i)=>{
+      let cls='quiz-opt';
+      if(answered!==null){
+        if(it.answer.includes(i))cls+=' correct';
+        else if(Array.isArray(answered)&&answered.includes(i))cls+=' wrong';
+        else cls+=' disabled';
+      }else if(quizSelected.includes(i)){
+        cls+=' selected';
+      }
+      return '<button class="'+cls+'" '+(answered!==null?'disabled':'')+' onclick="toggleQuizOption('+i+')"><span class="opt-check"></span><span class="opt-letter">'+'ABCD'[i]+'</span>'+escapeHtml(o)+'</button>';
+    }).join('')+'</div>';
+    if(answered===null){
+      html+='<div class="quiz-confirm-bar"><button class="btn-primary" onclick="confirmMultiAnswer()">确认答案</button></div>';
     }
-    return '<button class="'+cls+'" '+(answered!==null?'disabled':'')+' onclick="answerQuiz('+i+')"><span class="opt-letter">'+'ABCD'[i]+'</span>'+escapeHtml(o)+'</button>';
-  }).join('')+'</div>';
+  }
   if(answered!==null){
-    const correct=answered===it.answer;
-    html+='<div class="quiz-explain '+(correct?'ok':'bad')+'"><b>'+(correct?'✅ 回答正确':'❌ 回答错误')+'</b>（正确答案：'+'ABCD'[it.answer]+'）<br><br>'+escapeHtml(it.explain||'')+'</div>';
+    const correct=checkAnswer(it,answered);
+    html+='<div class="quiz-explain '+(correct?'ok':'bad')+'"><b>'+(correct?'✅ 回答正确':'❌ 回答错误')+'</b>（正确答案：'+formatAnswer(it,it.answer)+(answered!==null?' · 你的答案：'+formatAnswer(it,answered):'')+'）'+(!correct?' <span class="quiz-wrong-flag added">已加入错题本</span>':'')+'<br><br>'+escapeHtml(it.explain||'')+'</div>';
   }
   html+='<div class="quiz-nav">';
   if(curIdx>0)html+='<button class="btn-ghost" onclick="quizPrev()">← 上一题</button>';
@@ -756,18 +920,43 @@ function renderQuizQuestion(){
   bar.classList.add('hidden');
   body.scrollTop=0;
 }
-function answerQuiz(i){
+function toggleQuizOption(i){
   if(curAnswered[curIdx]!==null)return;
+  const idx=quizSelected.indexOf(i);
+  if(idx>=0)quizSelected.splice(idx,1);
+  else quizSelected.push(i);
+  renderQuizQuestion();
+}
+function confirmMultiAnswer(){
+  if(curAnswered[curIdx]!==null)return;
+  if(!quizSelected.length){alert('请至少选择一个选项');return;}
   const it=curSession[curIdx];
-  const correct=i===it.answer;
-  curAnswered[curIdx]=i;
-  recordOnePractice(it,i);
+  const ans=[...quizSelected].sort((a,b)=>a-b);
+  curAnswered[curIdx]=ans;
+  const correct=checkAnswer(it,ans);
+  recordOnePractice(it,ans);
   curCount++;
   if(correct)curCorrect++;
+  else{curWrongCount++;curWrongIds.push(it.id);}
   curChapterStats[it.chapter]=curChapterStats[it.chapter]||{t:0,c:0};
   curChapterStats[it.chapter].t++;if(correct)curChapterStats[it.chapter].c++;
   renderQuizQuestion();
-  // 如果是最后一题，显示查看结果按钮
+  if(curIdx+1>=curSession.length){
+    document.getElementById('quizFinishBar').classList.remove('hidden');
+  }
+}
+function answerQuiz(i){
+  if(curAnswered[curIdx]!==null)return;
+  const it=curSession[curIdx];
+  curAnswered[curIdx]=i;
+  const correct=checkAnswer(it,i);
+  recordOnePractice(it,i);
+  curCount++;
+  if(correct)curCorrect++;
+  else{curWrongCount++;curWrongIds.push(it.id);}
+  curChapterStats[it.chapter]=curChapterStats[it.chapter]||{t:0,c:0};
+  curChapterStats[it.chapter].t++;if(correct)curChapterStats[it.chapter].c++;
+  renderQuizQuestion();
   if(curIdx+1>=curSession.length){
     document.getElementById('quizFinishBar').classList.remove('hidden');
   }
@@ -778,7 +967,7 @@ function finishQuiz(){
   const body=document.getElementById('quizBody');
   const rate=curCount?Math.round(curCorrect/curCount*100):0;
   document.getElementById('quizProgressBar').style.width='100%';
-  document.getElementById('quizCount').textContent=curSession.length+' / '+curSession.length;
+  document.getElementById('quizCount').textContent=curSession.length+' / '+curSession.length+(curWrongCount>0?' · 错'+curWrongCount:'');
   let chHtml='';
   Object.keys(curChapterStats).forEach(ch=>{const s=curChapterStats[ch];const r=Math.round(s.c/s.t*100);chHtml+='<div class="bar-row" style="margin-bottom:6px"><span>'+escapeHtml(ch)+'</span><b>'+s.c+'/'+s.t+' ('+r+'%)</b></div><div class="progress" style="margin-bottom:8px"><i style="width:'+r+'%"></i></div>';});
   body.innerHTML='<div class="quiz-card"><div class="quiz-result">'+
@@ -787,7 +976,7 @@ function finishQuiz(){
     '<div class="qr-chapters">'+(chHtml||'')+'</div>'+
     '<div class="qr-btns">'+
     '<button class="btn-primary" onclick="startPractice()">再练一组</button>'+
-    '<button class="btn-ghost" onclick="exitQuiz();switchTab(\'wrong\')">看错题本</button>'+
+    (curWrongIds.length?'<button class="btn-ghost" onclick="exitQuiz();switchTab(\'wrong\')">看错题本</button>':'')+
     '<button class="btn-ghost" onclick="exitQuiz();switchTab(\'practice\')">返回练习</button></div>'+
     '</div></div>';
   document.getElementById('quizFinishBar').classList.add('hidden');
@@ -798,7 +987,7 @@ function exitQuiz(){
   renderPracticeHistory();
 }
 function recordOnePractice(it,userAns){
-  const correct = userAns===it.answer;
+  const correct = checkAnswer(it, userAns);
   state.practice.push({id:rid(),ts:Date.now(),bankId:it.id,subjectId:it.subjectId,chapter:it.chapter,correct,userAns});
   const s=state.subjects.find(x=>x.id===it.subjectId);if(s)s.questions=(+s.questions||0)+1;
   if(!correct){state.wrong[it.id]=state.wrong[it.id]||{firstWrong:fmtDate(new Date()),mastered:false};}
@@ -833,7 +1022,7 @@ function exportWrong(){
   if(!ids.length){alert('没有可导出的错题');return;}
   let txt='【法考错题本导出】  导出时间：'+fmtDate(new Date())+'\n\n';
   ids.forEach((id,i)=>{const b=state.bank.find(x=>x.id===id);if(!b)return;
-    txt+=(i+1)+'. ['+subjName(b.subjectId)+' / '+(b.chapter||'')+']\n题干：'+b.q+'\n选项：\n'+b.opts.map((o,k)=>'  '+'ABCD'[k]+'. '+o).join('\n')+'\n正确答案：'+('ABCD'[b.answer])+'\n解析：'+(b.explain||'')+'\n\n';});
+    txt+=(i+1)+'. ['+subjName(b.subjectId)+' / '+(b.chapter||'')+' / '+typeLabel(getQType(b))+']\n题干：'+b.q+'\n选项：\n'+b.opts.map((o,k)=>'  '+'ABCD'[k]+'. '+o).join('\n')+'\n正确答案：'+formatAnswer(b,b.answer)+'\n解析：'+(b.explain||'')+'\n\n';});
   const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='法考错题本_'+fmtDate(new Date())+'.txt';a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);
