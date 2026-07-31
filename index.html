@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚖️ 法考备考工作台</title>
+<style>
+  :root{
+    --primary:#1677ff; --primary-hover:#4096ff; --success:#52c41a; --warning:#faad14;
+    --error:#ff4d4f; --bg:#f0f2f5; --card:#ffffff; --text:#1f1f1f; --text-2:#595959;
+    --text-3:#8c8c8c; --border:#f0f0f0; --radius:10px; --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 60px}
+  header.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  .top h1{font-size:22px;font-weight:700;letter-spacing:.5px}
+  .top .sub{color:var(--text-3);font-size:13px;margin-top:4px}
+  .top .date-pill{background:var(--card);border-radius:20px;padding:8px 16px;font-size:13px;color:var(--text-2);box-shadow:var(--shadow)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px}
+  .tab{padding:8px 14px;border-radius:7px;cursor:pointer;font-size:14px;color:var(--text-2);user-select:none;transition:.18s;border:1px solid transparent;white-space:nowrap}
+  .tab:hover{color:var(--primary)}
+  .tab.active{background:#e6f4ff;color:var(--primary);font-weight:600}
+  .grid{display:grid;gap:16px}
+  .g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:860px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.g4,.g3,.g2{grid-template-columns:1fr}}
+  .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .card h3{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card h3 .tag{font-size:11px;font-weight:500;color:var(--primary);background:#e6f4ff;padding:2px 8px;border-radius:10px}
+  .big-num{font-size:30px;font-weight:700;color:var(--primary);line-height:1.1}
+  .big-num.warn{color:var(--warning)} .big-num.ok{color:var(--success)} .big-num.err{color:var(--error)}
+  .muted{color:var(--text-3);font-size:12px}
+  .stat-label{font-size:12px;color:var(--text-2);margin-top:2px}
+  .progress{height:8px;background:#f5f5f5;border-radius:6px;overflow:hidden;margin:8px 0 4px}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,#1677ff,#69b1ff);border-radius:6px;transition:width .4s}
+  .bar-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text-2)}
+  .subject{border:1px solid var(--border);border-radius:9px;padding:12px;background:#fafcff}
+  .subject .name{font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+  .subject .ctrl{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  input,select,textarea{font-family:inherit;font-size:13px;border:1px solid #d9d9d9;border-radius:6px;padding:6px 9px;outline:none;transition:.15s;width:100%}
+  input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,255,.12)}
+  input[type=range]{padding:0;border:none;width:100%}
+  button{cursor:pointer;border:none;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:500;transition:.15s;font-family:inherit}
+  .btn-primary{background:var(--primary);color:#fff} .btn-primary:hover{background:var(--primary-hover)}
+  .btn-ghost{background:#f5f5f5;color:var(--text-2)} .btn-ghost:hover{background:#ebebeb}
+  .btn-sm{padding:4px 10px;font-size:12px}
+  .btn-danger{background:#fff1f0;color:var(--error)} .btn-danger:hover{background:#ffe0de}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .row > div{flex:1;min-width:120px}
+  label.fl{font-size:12px;color:var(--text-2);display:block;margin-bottom:4px}
+  .timeline{position:relative;padding-left:22px}
+  .timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:#e8e8e8}
+  .tl-item{position:relative;padding:0 0 16px 6px}
+  .tl-item::before{content:"";position:absolute;left:-19px;top:5px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--primary)}
+  .tl-item.done::before{background:var(--success);border-color:var(--success)}
+  .tl-item.soon::before{background:var(--warning);border-color:var(--warning)}
+  .tl-item .t-title{font-size:14px;font-weight:600}
+  .tl-item .t-date{font-size:12px;color:var(--text-3)}
+  .tl-item .t-desc{font-size:13px;color:var(--text-2);margin-top:3px}
+  .phase-band{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:8px;vertical-align:middle}
+  .p1{background:#e6f4ff;color:#1677ff} .p2{background:#fff7e6;color:#d46b08}
+  .p3{background:#f9f0ff;color:#722ed1} .p4{background:#f6ffed;color:#389e0d}
+  .p5{background:#fff1f0;color:#cf1322} .p6{background:#e6fffb;color:#08979c}
+  .checkin-day{background:linear-gradient(135deg,#1677ff,#4096ff);color:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .checkin-day .cd-date{font-size:13px;opacity:.9}
+  .checkin-day .cd-emoji{font-size:34px;float:right}
+  .res-item,.plan-item{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff}
+  .res-item .meta{flex:1;min-width:0}
+  .res-item .meta b{font-size:14px} .res-item .meta span{font-size:12px;color:var(--text-3);display:block}
+  .mood-pick{display:flex;gap:8px;flex-wrap:wrap}
+  .mood{flex:1;min-width:60px;text-align:center;padding:8px;border:1px solid #d9d9d9;border-radius:8px;cursor:pointer;font-size:13px;transition:.15s}
+  .mood.sel{background:#e6f4ff;border-color:var(--primary);color:var(--primary);font-weight:600}
+  .tip{background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:12px;font-size:13px;color:#614700;margin-top:12px}
+  .hidden{display:none}
+  .chk-list{list-style:none;font-size:13px}
+  .chk-list li{padding:6px 0;border-bottom:1px dashed #f0f0f0;display:flex;align-items:center;gap:8px}
+  .chk-list li:last-child{border-bottom:none}
+  .chk-list input[type=checkbox]{width:auto}
+  .pill{font-size:11px;padding:2px 9px;border-radius:10px;background:#f5f5f5;color:var(--text-2)}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+  table.tbl th,table.tbl td{text-align:left;padding:9px 10px;border-bottom:1px solid #f5f5f5}
+  table.tbl th{color:var(--text-3);font-weight:500;background:#fafafa}
+  .streak-badge{display:inline-block;background:#fff7e6;color:#d46b08;border:1px solid #ffd591;border-radius:20px;padding:3px 12px;font-size:13px;font-weight:600}
+  .acc-badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;font-weight:600}
+  .acc-good{background:#f6ffed;color:#389e0d}.acc-mid{background:#fffbe6;color:#d48806}.acc-bad{background:#fff1f0;color:#cf1322}
+  .brush-rec{border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .brush-rec .b-meta{font-size:13px}
+  .goal-inline{width:74px;display:inline-block;padding:3px 6px}
+  .opt{display:block;width:100%;text-align:left;background:#fafcff;border:1px solid #d9d9d9;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;cursor:pointer;transition:.15s}
+  .opt:hover{border-color:var(--primary);background:#e6f4ff}
+  .opt.correct{background:#f6ffed;border-color:#b7eb8f;color:#389e0d;font-weight:600}
+  .opt.wrong{background:#fff1f0;border-color:#ffccc7;color:#cf1322}
+  .opt.disabled{opacity:.55;cursor:default}
+  .chapter-pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:#f0f5ff;color:#2f54eb;margin:2px 3px 2px 0}
+  .wrong-item{border:1px solid #ffccc7;background:#fffafa;border-radius:8px;padding:12px;margin-bottom:10px}
+  .sync-bar{position:fixed;bottom:18px;right:14px;z-index:50}
+  .sync-pill{cursor:pointer;font-size:12px;padding:7px 14px;border-radius:20px;box-shadow:var(--shadow);background:var(--card);border:1px solid var(--border);user-select:none}
+  .sync-pill.on{color:var(--success);border-color:#b7eb8f}
+  .sync-pill.busy{color:var(--primary);border-color:#91caff}
+  .sync-pill.off{color:var(--text-3)}
+  .sync-panel{position:fixed;bottom:60px;right:14px;z-index:60;width:300px;max-width:calc(100vw - 28px);background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:16px}
+  .sync-panel h4{font-size:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .sync-panel .row{margin-bottom:10px}
+  .sync-panel label.fl{font-size:12px;color:var(--text-2);display:block;margin-bottom:4px}
+  .sync-panel .hint{font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.55}
+  .sync-toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f1f1f;color:#fff;padding:10px 18px;border-radius:24px;font-size:13px;opacity:0;transition:.25s;z-index:80;pointer-events:none}
+  .sync-toast.show{opacity:.92;transform:translateX(-50%) translateY(0)}
+  /* 资料库弹窗 */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:90;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal-box{background:var(--card);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.25);width:560px;max-width:100%;max-height:90vh;overflow:auto;padding:20px}
+  .modal-box h3{margin:0 0 12px;font-size:16px}
+  .modal textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.6}
+  .res-item{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px}
+  .res-item .meta{flex:1;min-width:0}
+  .res-item .meta b{display:block;font-size:14px;margin-bottom:2px}
+  .res-item .meta span{font-size:12px;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>⚖️ 法考备考工作台</h1>
+      <div class="sub" id="subline">刷题 &amp; 学习工作台 · 客观题冲刺期</div>
+    </div>
+    <div class="date-pill" id="todayPill">今天：--</div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <div class="tab active" data-tab="overview">总览</div>
+    <div class="tab" data-tab="subjects">八科进度</div>
+    <div class="tab" data-tab="resources">资料库</div>
+    <div class="tab" data-tab="practice">刷题练习</div>
+    <div class="tab" data-tab="wrong">错题本</div>
+    <div class="tab" data-tab="affairs">考务</div>
+  </nav>
+
+  <!-- ========== 云端同步 ========== -->
+  <div class="sync-bar"><span id="syncPill" class="sync-pill off" onclick="openSyncPanel()">☁️ 未同步</span></div>
+  <div id="syncPanel" class="sync-panel hidden">
+    <h4>☁️ 云端同步 <span style="cursor:pointer;color:var(--text-3)" onclick="closeSyncPanel()">✕</span></h4>
+    <div class="row"><div><label class="fl">存储方式</label>
+      <select id="sfProvider" onchange="toggleSyncBoxes()">
+        <option value="off">仅本地（不联网）</option>
+        <option value="server">自建服务器（175.178.35.214）</option>
+        <option value="github">GitHub 仓库（推荐·无需服务器）</option>
+      </select></div></div>
+    <div id="boxServer">
+      <div class="row"><div><label class="fl">服务器地址</label><input id="sfUrl" placeholder="http://175.178.35.214:8787"></div></div>
+      <div class="row"><div><label class="fl">同步密钥 Token</label><input id="sfToken" placeholder="与服务器一致（首次POST锁定）"></div></div>
+    </div>
+    <div id="boxGithub" class="hidden">
+      <div class="row"><div><label class="fl">仓库 owner/name</label><input id="sfGhRepo" placeholder="sharonchau/fakao"></div></div>
+      <div class="row"><div><label class="fl">分支</label><input id="sfGhBranch" placeholder="main"></div></div>
+      <div class="row"><div><label class="fl">数据文件路径</label><input id="sfGhPath" placeholder="data/fk-data.json"></div></div>
+      <div class="row"><div><label class="fl">GitHub Token（repo 权限）</label><input id="sfGhToken" placeholder="ghp_... 或 github_pat_..."></div></div>
+      <div class="hint">生成方式：GitHub 头像 → Settings → Developer settings → Personal access tokens → 勾选 <b>repo</b> 权限生成。数据以 JSON 文件存进<strong>独立的私有仓库</strong>（默认 sharon911586114-spec/fakao-data，与公开界面仓库分离）。Token 仅保存在本机浏览器，不上传。</div>
+    </div>
+    <div class="row"><div><label class="fl">本机设备名</label><input id="sfDevice" placeholder="如：Mac / iPhone / iPad"></div></div>
+    <div class="row" style="align-items:center"><label style="flex:1;font-size:13px;color:var(--text-2)">启用自动同步</label><input id="sfEnable" type="checkbox" style="width:auto"></div>
+    <div class="row" style="display:flex;gap:8px">
+      <button class="btn-primary" style="flex:1" onclick="saveSyncCfg()">保存</button>
+      <button class="btn-ghost" style="flex:1" onclick="manualSync()">立即同步</button>
+    </div>
+    <div class="hint" id="syncHint">选择 GitHub 后：数据每次改动 1.5 秒后自动提交到仓库，每 30 秒自动拉取；手机/iPad 用同一仓库 + 同一 Token 即可共享同一份做题数据。开启 GitHub Pages 后，任意设备浏览器打开链接即用。</div>
+  </div>
+  <div id="syncToast" class="sync-toast"></div>
+
+  <!-- ========== 总览 ========== -->
+  <section id="overview" class="tab-pane">
+    <div class="grid g4">
+      <div class="card"><h3>📅 距客观题 <span class="tag">9/12</span></h3><div class="big-num" id="cdObj">--</div><div class="stat-label">天 · 准考证打印 9/2 起</div></div>
+      <div class="card"><h3>📝 距主观题 <span class="tag">10/18</span></h3><div class="big-num warn" id="cdSub">--</div><div class="stat-label">天 · 客观题过线才进此战</div></div>
+      <div class="card"><h3>✅ 我的资格 <span class="tag">老人老办法</span></h3><div class="big-num ok" style="font-size:24px">已确认</div><div class="stat-label" id="qualLine">自考本科 · 符合报考</div></div>
+      <div class="card"><h3>🔥 刷题总数</h3><div class="big-num" id="mQ">0</div><div class="stat-label">题 · 来自刷题练习</div></div>
+    </div>
+
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card">
+        <h3>📊 学习仪表盘</h3>
+        <div class="grid g2" style="gap:14px;margin-top:4px">
+          <div><div class="big-num" id="mSub" style="font-size:24px">0%</div><div class="stat-label">八科平均进度</div></div>
+          <div><div class="big-num" id="mWrong" style="font-size:24px">0</div><div class="stat-label">未掌握错题</div></div>
+          <div><div class="big-num" id="mBank" style="font-size:24px">0</div><div class="stat-label">题库题数</div></div>
+          <div><div class="big-num" id="mToday" style="font-size:24px">0</div><div class="stat-label">今日刷题</div></div>
+        </div>
+        <div class="tip" id="overviewTip">💡 在「刷题练习」答一题，数据会实时汇总到这里。</div>
+      </div>
+      <div class="card">
+        <h3>🎯 今日速览</h3>
+        <div id="todaySnapshot" class="muted">加载中…</div>
+        <button class="btn-primary" style="margin-top:12px;width:100%" onclick="switchTab('practice')">去刷题练习 →</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>🏛️ 考务临近节点</h3>
+      <div id="nextAffairBox" class="muted">加载中…</div>
+    </div>
+  </section>
+
+  <!-- ========== 八科进度 ========== -->
+  <section id="subjects" class="tab-pane hidden">
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:10px">
+        <h3 style="margin:0">📚 八大学科进度看板</h3>
+        <span class="muted">拖动滑块调整进度，输入掌握度/刷题数，自动保存</span>
+      </div>
+      <div class="grid g2" id="subjectGrid"></div>
+    </div>
+  </section>
+
+  <!-- ========== 资料库 ========== -->
+  <section id="resources" class="tab-pane hidden">
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:10px">
+        <h3 style="margin:0">📦 资料库</h3>
+        <button class="btn-primary btn-sm" onclick="addResource()">+ 新增资料</button>
+      </div>
+      <div id="resList"></div>
+    </div>
+  </section>
+
+  <!-- ========== 资料库弹窗（内联查看/编辑，支持导入文本文件） ========== -->
+  <div id="resModal" class="modal hidden">
+    <div class="modal-box">
+      <h3 id="resModalTitle">查看 / 编辑资料</h3>
+      <div class="row" style="margin-bottom:8px;gap:10px">
+        <div style="flex:1"><label class="fl">名称</label><input id="rmName" style="width:100%"></div>
+        <div style="width:120px"><label class="fl">类型</label><input id="rmType" style="width:100%"></div>
+      </div>
+      <label class="fl">内容（直接粘贴文本/笔记，或导入文本文件，可本地打开查看）</label>
+      <textarea id="rmContent" rows="12" style="width:100%;margin-top:4px"></textarea>
+      <div class="row" style="margin-top:8px;align-items:center;gap:10px">
+        <button class="btn-ghost btn-sm" onclick="importResFile()">📂 导入文本文件</button>
+        <input type="file" id="rmFile" accept=".txt,.md,.csv,.json,.text" style="display:none" onchange="onResFile(event)">
+        <span class="muted" id="rmFileMsg"></span>
+      </div>
+      <div class="flex-between" style="margin-top:14px">
+        <button class="btn-danger btn-sm" onclick="delRes(currentResId)">删除此资料</button>
+        <div><button class="btn-ghost" onclick="closeResModal()">取消</button> <button class="btn-primary" onclick="saveRes()">保存</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 刷题练习 ========== -->
+  <section id="practice" class="tab-pane hidden">
+    <div class="grid g2">
+      <div class="card">
+        <h3>🎯 刷题练习 <span class="tag">按章节</span></h3>
+        <div class="row">
+          <div><label class="fl">科目</label><select id="pfSubject"></select></div>
+          <div><label class="fl">章节/知识点</label><select id="pfChapter"></select></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div><label class="fl">出题数量</label><input id="pfNum" type="number" min="1" value="5"></div>
+          <div style="flex:0"><label class="fl">&nbsp;</label><button class="btn-primary" onclick="startPractice()">开始练习</button></div>
+        </div>
+        <div class="tip" style="margin-top:12px">💡 题库为内置练习（含公开真题整理 + 考点题，共 23 题）。每答一题自动计入刷题统计、章节正确率与错题本。当前题库 <b id="bankCount">0</b> 题。</div>
+      </div>
+      <div class="card">
+        <h3>📚 题库概览</h3>
+        <div id="bankOverview"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>📝 答题区</h3>
+      <div id="practiceArea"><span class="muted">选择条件后点「开始练习」。</span></div>
+    </div>
+  </section>
+
+  <!-- ========== 错题本 ========== -->
+  <section id="wrong" class="tab-pane hidden">
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:10px">
+        <h3 style="margin:0">📕 错题本 <span class="tag" id="wrongCount">0</span></h3>
+        <button class="btn-primary btn-sm" onclick="exportWrong()">⬇️ 导出错题本(txt)</button>
+      </div>
+      <div id="wrongStat"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div id="wrongList"><span class="muted">暂无错题 🎉</span></div>
+    </div>
+  </section>
+
+  <!-- ========== 考务 ========== -->
+  <section id="affairs" class="tab-pane hidden">
+    <div class="grid">
+      <div class="card">
+        <h3>🏛️ 考务关键节点</h3>
+        <ul class="chk-list" id="affairNodes"></ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>🧠 ENTJ 备考心法 <span class="tag">轮换</span></h3>
+      <div id="entjTip" class="tip" style="margin-top:0"></div>
+      <button class="btn-ghost btn-sm" style="margin-top:10px" onclick="rotateEntj()">换一条 →</button>
+    </div>
+  </section>
+
+  <div style="text-align:center;color:var(--text-3);font-size:12px;margin-top:30px">
+    数据保存在本机浏览器(localStorage) · 离线可用 · 文件：法考工作台.html
+  </div>
+</div>
+
+<script>
+/* ===================== 常量与状态 ===================== */
+const START = new Date(2026,6,31);
+const OBJ_EXAM = new Date(2026,8,12);
+const TICKET   = new Date(2026,8,2);
+const SUB_EXAM = new Date(2026,9,18);
+const DAY = 86400000;
+const TODAY_KEY = fmtDate(new Date());
+
+const DEFAULT_SUBJECTS = [
+  {id:'x', name:'刑法', weight:1},
+  {id:'xs', name:'刑事诉讼法', weight:1},
+  {id:'m', name:'民法', weight:1.2},
+  {id:'ms', name:'民事诉讼法', weight:1},
+  {id:'xz', name:'行政法与行政诉讼法', weight:1},
+  {id:'sjz', name:'商经知(商法·经济法·知产)', weight:1.1},
+  {id:'ll', name:'理论法(法理·宪法·法治思想)', weight:1},
+  {id:'sg', name:'三国法(国际公·私·经济法)', weight:0.8},
+];
+
+const DEFAULT_RESOURCES = [
+  {type:'官网',name:'司法部官网要点（报名/公告/分数线）',content:'在此粘贴从 moj.gov.cn 复制的报名须知、考试公告、客观题合格线要点。',done:false},
+  {type:'官网',name:'中国普法网资讯',content:'粘贴普法网上的政策解读、备考资讯摘录。',done:false},
+  {type:'教材',name:'官方法考辅导用书「九大本」笔记',content:'粘贴各科目精讲要点、易混点对比笔记。',done:false},
+  {type:'教材',name:'瑞达法考（钟秀勇民法·蔡雅奇刑法）',content:'粘贴瑞达讲义摘录、口诀、框架图文字版。',done:false},
+  {type:'教材',name:'厚大法考（精讲/119背诵/168金题）',content:'粘贴厚大精讲要点、119必背、168金题错题归纳。',done:false},
+  {type:'教材',name:'众合教育专题讲座（柏浪涛刑法·李佳行政法）',content:'粘贴众合专题讲座笔记。',done:false},
+  {type:'课程',name:'觉晓法考系统课',content:'粘贴系统课重点、数据化过考模型笔记。',done:false},
+  {type:'课程',name:'B站课件合集',content:'粘贴B站课件中的公式、口诀、框架图文字版。',done:false},
+  {type:'真题',name:'竹马法考真题解析',content:'粘贴竹马真题解析中你常错的考点归纳。',done:false},
+  {type:'真题',name:'觉晓题库 AI 批改薄弱点',content:'粘贴 AI 批改后标记的薄弱点清单。',done:false},
+  {type:'真题',name:'粉笔题库高频错题',content:'粘贴粉笔题库高频错题本。',done:false},
+  {type:'真题',name:'近5年客观题真题集（纸质）',content:'粘贴纸质真题的易错选项、陷阱总结。',done:false},
+  {type:'法条',name:'国家法律法规数据库（高频法条原文）',content:'粘贴高频考点法条原文（刑法/民法典/刑诉法/行政法/商经法等）。',done:false},
+  {type:'法条',name:'北大法宝检索重点法条',content:'粘贴检索到的重点法条及司法解释。',done:false},
+  {type:'工具',name:'法信类案要旨',content:'粘贴类案要旨、知识导航笔记。',done:false},
+  {type:'工具',name:'法考助手 ssdkhwqw.site（本人运维）',content:'粘贴你运维的法考助手中的资料、接口说明。',done:false},
+];
+
+const AFFAIR_NODES = [
+  {t:'客观题网上报名',d:'6/15 - 6/29（已截止）',done:true},
+  {t:'客观题交费',d:'7/4 截止（已截止）',done:true},
+  {t:'打印准考证',d:'9/2 - 9/11',done:false},
+  {t:'客观题考试',d:'9/12 - 9/13',done:false},
+  {t:'客观题成绩/合格线',d:'9/19 公布',done:false},
+  {t:'主观题报名交费',d:'9/19 - 9/23',done:false},
+  {t:'主观题打印准考证',d:'10/13 - 10/17',done:false},
+  {t:'主观题考试',d:'10/18',done:false},
+];
+
+const ENTJ_TIPS = [
+  'ENTJ 容易因“进度焦虑”内耗：把大目标拆成今天能勾掉的小任务，勾掉即掌控。',
+  '别用“别人刷了3轮”衡量自己。你擅长的本就是策略与执行，按自己的阶段地图走。',
+  '疲惫时停15分钟比硬撑2小时更高效——你的产出质量 > 时长堆砌。',
+  '每周留半天“放空复盘”：回顾薄弱点而非新内容，ENTJ最怕盲目向前冲。',
+  '法考是马拉松不是冲刺。把今天的打卡当作给“未来的自己”的承诺。',
+  '遇到崩的状态：写下“卡住的具体是哪一点”，问题具象化后焦虑自动减半。',
+];
+
+/* ===================== 内置题库（含公开真题整理 + 考点题） ===================== */
+const DEFAULT_BANK = [
+  // 刑法
+  {id:'k01',subjectId:'x',chapter:'正当防卫与紧急避险',q:'关于正当防卫与紧急避险，下列哪一选项是正确的？（2016-2-6）',opts:['为保护国家利益实施的防卫行为，只有当防卫人是国家工作人员时，才成立正当防卫','为制止正在进行的不法侵害，使用第三者的财物反击不法侵害人，导致该财物被毁坏的，对不法侵害人不可能成立正当防卫','为摆脱合法追捕而侵入他人住宅的，考虑到人性弱点，可认定为紧急避险','为保护个人利益免受正在发生的危险，不得已也可通过损害公共利益的方法进行紧急避险'],answer:3,explain:'紧急避险本质为综合利益最大化，个人利益大于公共利益时可牺牲公共利益避险；A正当防卫无主体限制；B对不法侵害人可成立正当防卫；C面对合法追捕无紧急避险权。',src:'真题'},
+  {id:'k02',subjectId:'x',chapter:'犯罪未完成形态',q:'下列哪一行为成立犯罪未遂？（2015-2-5）',opts:['以贩卖为目的，在网上订购毒品，付款后尚未取得毒品即被查获','国家工作人员非法收受他人给予的现金支票后，未到银行提取现金即被查获','为谋取不正当利益，将价值5万元的财物送给国家工作人员，但第二天被退回','发送诈骗短信，受骗人上当后汇出5万元，但因误操作汇到无关第三人的账户'],answer:3,explain:'D已着手实行诈骗，因意志以外原因（汇错账户）未得逞，成立未遂。A未着手为预备；B受贿收受即既遂；C行贿完成既遂。',src:'真题'},
+  {id:'k03',subjectId:'x',chapter:'犯罪未完成形态',q:'甲将毒药拌入菜中意图杀夫，久等未归且惧怕法律制裁，遂倒掉菜。乙的行为？（2010-2-5）',opts:['犯罪预备','犯罪预备阶段的犯罪中止','犯罪未遂','犯罪实行阶段的犯罪中止'],answer:1,explain:'乙主动放弃犯罪并防止结果，成立犯罪中止；对象未出现、未着手，属预备阶段中止。',src:'真题'},
+  {id:'k04',subjectId:'x',chapter:'刑法因果关系',q:'关于刑法因果关系，下列哪一说法正确？',opts:['甲提供伪造材料骗贷后经营失败未归还，骗贷行为与银行损失有因果关系','溺水者将抓甲的漂浮物，甲拿走致其亡，甲行为与死亡无因果关系','甲乙无意思联络同时向丙开枪均打非要害致其流血过多亡，甲乙行为均与丙死亡有因果关系','乙发现甲已投毒未再投，丙被毒死，乙行为与死亡有因果关系'],answer:2,explain:'C为二因一果，均有因果关系；A损失原因在经营失败；B拿走救命物创设不允许风险有因果；D乙无因果关系。',src:'考点'},
+  {id:'k05',subjectId:'x',chapter:'被害人承诺',q:'经被害人承诺的行为排除犯罪，下列哪一选项与空格匹配？（2011-2-8）',opts:['法益—事项—现实—真实','事项—法益—现实—真实','事项—法益—真实—现实','法益—事项—真实—现实'],answer:3,explain:'被害人承诺四要件：对被侵害法益有处分权限；对承诺事项意义范围有理解能力；出于真实意志；有现实的承诺。',src:'真题'},
+  // 刑诉
+  {id:'k06',subjectId:'xs',chapter:'证据与非法证据排除',q:'下列哪一证据应当适用非法证据排除规则予以排除？',opts:['侦查人员暴力逼取的犯罪嫌疑人供述','证人因记忆偏差所作的证言','与被害人有利害关系的证人所作证言','复印件与原件不符的书证'],answer:0,explain:'刑讯逼供等非法方法收集的犯罪嫌疑人、被告人供述应当排除。',src:'考点'},
+  {id:'k07',subjectId:'xs',chapter:'管辖',q:'下列哪一案件应当由中级人民法院管辖第一审？',opts:['可能判处无期徒刑的故意杀人案','普通的盗窃案','一般的民间借贷纠纷','轻微的故意伤害（轻伤）案'],answer:0,explain:'中级法院管辖：危害国家安全、恐怖活动案件、可能判处无期/死刑的案件。',src:'考点'},
+  {id:'k08',subjectId:'xs',chapter:'辩护与代理',q:'犯罪嫌疑人有权委托辩护人的时间是？',opts:['自被侦查机关第一次讯问或采取强制措施之日起','自案件移送审查起诉之日起','自法院受理案件之日起','自被逮捕之日起'],answer:0,explain:'犯罪嫌疑人自被侦查机关第一次讯问或采取强制措施之日起有权委托辩护人。',src:'考点'},
+  // 民法
+  {id:'k09',subjectId:'m',chapter:'物权·善意取得',q:'关于善意取得，下列哪一情形受让人可取得所有权？',opts:['受让人明知出让人无处分权仍受让','受让人善意、以合理价格受让且动产已交付/不动产已登记','出让人保留所有权的分期买卖','借用关系中借用人将物转让'],answer:1,explain:'善意取得要件：受让人善意、合理价格、动产交付或不动产登记。',src:'考点'},
+  {id:'k10',subjectId:'m',chapter:'诉讼时效',q:'根据我国民法，普通诉讼时效期间为？',opts:['1年','2年','3年','5年'],answer:2,explain:'《民法典》普通诉讼时效期间为3年。',src:'考点'},
+  {id:'k11',subjectId:'m',chapter:'合同·要约与要约邀请',q:'关于要约与要约邀请，下列哪一说法正确？',opts:['商业广告一律为要约','内容具体确定且表明受约束意思的商业广告可为要约','要约到达受要约人后不得撤销','承诺必须以书面通知作出'],answer:1,explain:'商业广告一般为要约邀请；内容具体确定并表明经受要约人承诺即受约束的，视为要约。',src:'考点'},
+  // 民诉
+  {id:'k12',subjectId:'ms',chapter:'管辖',q:'民事诉讼一般地域管辖原则是？',opts:['原告就被告','被告就原告','由中级法院专属管辖','由标的物所在地管辖'],answer:0,explain:'一般地域管辖实行“原告就被告”原则。',src:'考点'},
+  {id:'k13',subjectId:'ms',chapter:'证据与证明',q:'关于举证责任，下列哪一说法正确？',opts:['一律由被告举证','谁主张谁举证，法律另有规定的除外','法院应主动收集所有证据','证人无需出庭'],answer:1,explain:'民事诉讼举证责任一般规则为“谁主张谁举证”，存在法定倒置情形。',src:'考点'},
+  // 行政法
+  {id:'k14',subjectId:'xz',chapter:'行政处罚',q:'下列哪一情形行政机关应当告知当事人有要求听证的权利？',opts:['对公民处以200元罚款','责令停产停业','警告','通报批评'],answer:1,explain:'责令停产停业、吊销许可证/执照、较大数额罚款等，行政机关应告知听证权利。',src:'考点'},
+  {id:'k15',subjectId:'xz',chapter:'行政复议与诉讼',q:'下列哪项争议依法应当先申请行政复议（复议前置）？',opts:['对行政拘留不服','对普通罚款不服','纳税人与税务机关因纳税发生争议','对行政许可不服'],answer:2,explain:'纳税争议等属于复议前置情形，须先申请复议对复议不服再诉讼。',src:'考点'},
+  {id:'k16',subjectId:'xz',chapter:'国家赔偿',q:'行政赔偿的义务机关一般是？',opts:['作出违法行政行为的行政机关','当地人民政府','人民法院','财政部门'],answer:0,explain:'行政赔偿义务机关为实施违法行为的行政机关。',src:'考点'},
+  // 商经知
+  {id:'k17',subjectId:'sjz',chapter:'公司法',q:'关于有限责任公司股东责任，下列哪一正确？',opts:['股东对公司债务承担无限连带责任','股东以其认缴的出资额为限对公司承担责任','股东必须以劳务出资','公司财产与股东财产混同不担责'],answer:1,explain:'有限公司股东以其认缴出资额为限对公司承担责任，公司以其全部财产对债务承担责任。',src:'考点'},
+  {id:'k18',subjectId:'sjz',chapter:'合伙企业',q:'普通合伙企业的合伙人对合伙企业债务承担？',opts:['有限责任','无限连带责任','按出资比例承担责任','不承担责任'],answer:1,explain:'普通合伙人对合伙企业债务承担无限连带责任。',src:'考点'},
+  {id:'k19',subjectId:'sjz',chapter:'劳动法',q:'劳动合同期限3年以上固定期限的，试用期不得超过？',opts:['1个月','2个月','6个月','12个月'],answer:2,explain:'3年以上固定期限和无固定期限合同，试用期不得超过6个月。',src:'考点'},
+  // 理论法
+  {id:'k20',subjectId:'ll',chapter:'法的渊源与效力',q:'关于我国法律渊源效力位阶，下列哪一正确？',opts:['行政法规高于法律','宪法具有最高法律效力','地方性法规高于法律','部门规章高于行政法规'],answer:1,explain:'宪法具有最高法律效力；效力位阶：宪法>法律>行政法规>地方性法规。',src:'考点'},
+  {id:'k21',subjectId:'ll',chapter:'宪法·国家机构',q:'下列属于全国人民代表大会职权的是？',opts:['审判具体案件','修改宪法、监督宪法实施','批准县级行政区划设立','侦查职务犯罪'],answer:1,explain:'全国人大有权修改宪法、监督宪法实施；审判权属法院，侦查权属监察/公安。',src:'考点'},
+  // 三国法
+  {id:'k22',subjectId:'sg',chapter:'国际私法·合同之债',q:'涉外合同当事人未选择适用法律时，我国冲突规范一般适用？',opts:['一律适用中国法','与合同有最密切联系的国家/地区法律','原告住所地法','联合国公约'],answer:1,explain:'当事人未选择的，适用履行义务最能体现合同特征的一方经常居所地法或其他最密切联系法律。',src:'考点'},
+  {id:'k23',subjectId:'sg',chapter:'国际公法·外交特权',q:'根据外交特权与豁免，外交代表对其下列何行为享有刑事管辖豁免？',opts:['以私人身份参与的继承','在其使馆外购置不动产','执行公务中的犯罪行为','商业经营活动'],answer:2,explain:'外交代表享有刑事管辖豁免且非可放弃；私人不动产、继承、商业活动不享有豁免。',src:'考点'},
+];
+
+/* ===================== 存储 ===================== */
+function load(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function rid(){return Math.random().toString(36).slice(2,9);}
+
+let state = {
+  profile: load('fk_profile', {name:'周健欣', target:108, examCity:'中山', qualOk:true}),
+  subjects: load('fk_subjects', DEFAULT_SUBJECTS.map(s=>({...s, progress:0, mastery:3, questions:0, notes:''}))),
+  resources: load('fk_resources', DEFAULT_RESOURCES.map(r=>({...r,id:rid()}))),
+  bank: load('fk_bank', DEFAULT_BANK.map(b=>({...b}))),
+  practice: load('fk_practice', []),
+  wrong: load('fk_wrong', {}),
+};
+function persist(){save('fk_profile',state.profile);save('fk_subjects',state.subjects);save('fk_resources',state.resources);save('fk_bank',state.bank);save('fk_practice',state.practice);save('fk_wrong',state.wrong);schedulePush();}
+
+/* ===================== 资料库迁移：无外链，保留已勾选，补 content 字段 ===================== */
+(function migrateResources(){
+  state.resources.forEach(r=>{
+    if(!('content' in r)) r.content = r.link ? ('（原外链 '+r.link+' 已移除，请在此粘贴资料内容）') : '';
+    delete r.link;
+  });
+  const have = new Set(state.resources.map(r=>r.name));
+  DEFAULT_RESOURCES.forEach(d=>{ if(!have.has(d.name)) state.resources.push({...d,id:rid()}); });
+})();
+
+/* ===================== 工具 ===================== */
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseDate(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function daysBetween(a,b){return Math.ceil((b-a)/DAY);}
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+/* 每日打卡模块已移除 */
+function subjName(id){const s=state.subjects.find(x=>x.id===id);return s?s.name:id;}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+/* ===================== 渲染：总览 ===================== */
+function renderOverview(){
+  const dObj = daysBetween(new Date(), OBJ_EXAM);
+  const dSub = daysBetween(new Date(), SUB_EXAM);
+  document.getElementById('cdObj').textContent = dObj>0?dObj:'进行中';
+  document.getElementById('cdSub').textContent = dSub>0?dSub:'进行中';
+  const totalQ = state.practice.length;
+  const avgSub = Math.round(state.subjects.reduce((a,s)=>a+(+s.progress||0),0)/state.subjects.length);
+  const wrongN = Object.keys(state.wrong).filter(k=>!state.wrong[k].mastered).length;
+  const todayQ = state.practice.filter(p=>fmtDate(new Date(p.ts))===TODAY_KEY).length;
+  document.getElementById('mQ').textContent = totalQ;
+  document.getElementById('mSub').textContent = avgSub+'%';
+  document.getElementById('mWrong').textContent = wrongN;
+  document.getElementById('mBank').textContent = state.bank.length;
+  document.getElementById('mToday').textContent = todayQ;
+  const snap = document.getElementById('todaySnapshot');
+  snap.innerHTML = todayQ
+    ? '<div style="font-size:14px;font-weight:600">今日已刷 '+todayQ+' 题 ✅</div>'+
+      '<div class="bar-row" style="margin-top:6px"><span>题库总量</span><b>'+state.bank.length+' 题</b></div>'+
+      '<div class="bar-row"><span>未掌握错题</span><b>'+wrongN+' 题</b></div>'
+    : '<div class="muted">今天还没刷题。点下方按钮，开刷第一题 👇</div>';
+  const next = AFFAIR_NODES.find(n=>!n.done);
+  const nb = document.getElementById('nextAffairBox');
+  nb.innerHTML = next
+    ? ('<span class="phase-band p4">待办</span> <b style="font-size:15px">'+next.t+'</b><div class="muted" style="margin-top:4px">'+next.d+'</div>')
+    : '<span class="muted">考务节点全部完成 🎉</span>';
+}
+
+/* ===================== 渲染：八科 ===================== */
+function renderSubjects(){
+  const g = document.getElementById('subjectGrid');
+  g.innerHTML = state.subjects.map(s=>{
+    const items=state.bank.filter(b=>b.subjectId===s.id);
+    const chs=[...new Set(items.map(b=>b.chapter))];
+    return '<div class="subject" data-id="'+s.id+'">'+
+      '<div class="name">'+s.name+' <span class="muted" style="font-weight:400">权重 '+s.weight+'</span></div>'+
+      '<div class="bar-row"><span>进度 '+(+s.progress||0)+'%</span><span>掌握度 '+(+s.mastery||3)+'/5</span></div>'+
+      '<div class="progress"><i style="width:'+(s.progress||0)+'%"></i></div>'+
+      '<input type="range" min="0" max="100" step="5" value="'+(s.progress||0)+'" oninput="onSubProgress(\''+s.id+'\',this.value)">'+
+      '<div class="ctrl">'+
+        '<div style="flex:1;min-width:90px"><label class="fl">掌握度(1-5)</label><input type="number" min="1" max="5" value="'+(s.mastery||3)+'" onchange="onSubMastery(\''+s.id+'\',this.value)"></div>'+
+        '<div style="flex:1;min-width:90px"><label class="fl">刷题数</label><input type="number" min="0" value="'+(s.questions||0)+'" onchange="onSubQuestions(\''+s.id+'\',this.value)"></div>'+
+      '</div>'+
+      (items.length?'<div style="margin-top:6px"><span class="chapter-pill">题库 '+items.length+'题</span>'+chs.map(c=>'<span class="chapter-pill">'+escapeHtml(c)+'</span>').join('')+'</div>':'')+
+      '<div style="margin-top:6px"><label class="fl">薄弱点/笔记</label><input value="'+escapeHtml(s.notes||'')+'" onchange="onSubNotes(\''+s.id+'\',this.value)" placeholder="如：刑诉非法证据排除规则"></div>'+
+    '</div>';
+  }).join('');
+}
+function onSubProgress(id,v){const s=state.subjects.find(x=>x.id===id);s.progress=+v;persist();renderSubjects();renderOverview();}
+function onSubMastery(id,v){const s=state.subjects.find(x=>x.id===id);s.mastery=Math.max(1,Math.min(5,+v||3));persist();renderSubjects();}
+function onSubQuestions(id,v){const s=state.subjects.find(x=>x.id===id);s.questions=Math.max(0,+v||0);persist();renderSubjects();}
+function onSubNotes(id,v){const s=state.subjects.find(x=>x.id===id);s.notes=v;persist();}
+
+/* ===================== 渲染：打卡 / 计划（已移除） ===================== */
+/* 每日打卡与阶段计划模块已按用户要求移除 */
+
+/* ===================== 渲染：资料库（本地文本/文件，内联查看） ===================== */
+function renderResources(){
+  const list=document.getElementById('resList');
+  if(!state.resources.length){list.innerHTML='<span class="muted">暂无资料，点右上「+ 新增资料」添加你的讲义/笔记/法条摘录。</span>';return;}
+  list.innerHTML=state.resources.map(r=>{
+    const preview = r.content ? (r.content.length>36?escapeHtml(r.content.slice(0,36))+'…':escapeHtml(r.content)) : '空';
+    return '<div class="res-item" data-id="'+r.id+'">'+
+      '<input type="checkbox" '+(r.done?'checked':'')+' onchange="toggleRes(\''+r.id+'\')" style="width:auto">'+
+      '<div class="meta"><b style="'+(r.done?'text-decoration:line-through;color:#bfbfbf':'')+'">'+escapeHtml(r.name)+'</b><span>'+r.type+' · '+preview+'</span></div>'+
+      '<button class="btn-ghost btn-sm" onclick="openRes(\''+r.id+'\')">查看/编辑</button>'+
+      '<button class="btn-danger btn-sm" onclick="delRes(\''+r.id+'\')">删除</button>'+
+    '</div>';
+  }).join('');
+}
+function toggleRes(id){const r=state.resources.find(x=>x.id===id);if(r){r.done=!r.done;persist();renderResources();}}
+function delRes(id){state.resources=state.resources.filter(x=>x.id!==id);persist();renderResources();}
+function addResource(){
+  const r={id:rid(),type:'教材',name:'新资料 '+(state.resources.length+1),content:'',done:false};
+  state.resources.push(r);persist();renderResources();openRes(r.id);
+}
+let currentResId=null;
+function openRes(id){
+  const r=state.resources.find(x=>x.id===id);if(!r)return;currentResId=id;
+  document.getElementById('rmName').value=r.name;
+  document.getElementById('rmType').value=r.type;
+  document.getElementById('rmContent').value=r.content||'';
+  document.getElementById('resModalTitle').textContent='查看/编辑：'+r.name;
+  document.getElementById('rmFileMsg').textContent='';
+  document.getElementById('resModal').classList.remove('hidden');
+}
+function saveRes(){
+  const r=state.resources.find(x=>x.id===currentResId);if(!r)return;
+  r.name=document.getElementById('rmName').value.trim()||r.name;
+  r.type=document.getElementById('rmType').value.trim()||r.type;
+  r.content=document.getElementById('rmContent').value;
+  persist();closeResModal();renderResources();
+}
+function closeResModal(){document.getElementById('resModal').classList.add('hidden');currentResId=null;}
+function importResFile(){document.getElementById('rmFile').click();}
+function onResFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{document.getElementById('rmContent').value=rd.result;document.getElementById('rmFileMsg').textContent='已导入：'+f.name+'（'+f.size+' 字节）';};
+  rd.readAsText(f);e.target.value='';
+}
+
+/* ===================== 渲染：考务&个人 ===================== */
+function renderAffairs(){
+  document.getElementById('affairNodes').innerHTML=AFFAIR_NODES.map(n=>
+    '<li><span style="color:'+(n.done?'var(--success)':'var(--text-3)')+';font-size:16px">'+(n.done?'✅':'⬜')+'</span> <b>'+n.t+'</b> <span class="muted">· '+n.d+'</span></li>').join('');
+  renderEntj();
+}
+let entjIdx=0;
+function renderEntj(){document.getElementById('entjTip').textContent='💡 '+ENTJ_TIPS[entjIdx%ENTJ_TIPS.length];}
+function rotateEntj(){entjIdx++;renderEntj();}
+
+/* ===================== 刷题练习 ===================== */
+let curSession=[],curIdx=0,curCount=0,curCorrect=0,curChapterStats={};
+function fillPracticeSelectors(){
+  const ps=document.getElementById('pfSubject');
+  if(ps.options.length===0){
+    ps.innerHTML='<option value="all">全部科目</option>'+state.subjects.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('');
+  }
+  syncChapterSelect();
+}
+function syncChapterSelect(){
+  const sid=document.getElementById('pfSubject').value;
+  const sel=document.getElementById('pfChapter');
+  const items=state.bank.filter(b=>sid==='all'||b.subjectId===sid);
+  const chs=[...new Set(items.map(b=>b.chapter))];
+  sel.innerHTML='<option value="">全部章节</option>'+chs.map(c=>'<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>').join('');
+}
+function renderBankOverview(){
+  const box=document.getElementById('bankOverview');
+  document.getElementById('bankCount').textContent=state.bank.length;
+  box.innerHTML=state.subjects.map(s=>{
+    const items=state.bank.filter(b=>b.subjectId===s.id);
+    if(!items.length)return '';
+    const chs=[...new Set(items.map(b=>b.chapter))];
+    return '<div style="margin-bottom:8px"><b>'+s.name+'</b> <span class="muted">'+items.length+'题</span><br><span>'+chs.map(c=>'<span class="chapter-pill">'+escapeHtml(c)+'</span>').join('')+'</span></div>';
+  }).join('')||'<span class="muted">题库为空</span>';
+}
+function startPractice(){
+  const sid=document.getElementById('pfSubject').value;
+  const ch=document.getElementById('pfChapter').value;
+  const n=Math.max(1,+document.getElementById('pfNum').value||5);
+  let pool=state.bank.filter(b=>(sid==='all'||b.subjectId===sid)&&(!ch||b.chapter===ch));
+  if(!pool.length){alert('该范围暂无题目，换条件或先练习已有题目');return;}
+  pool=shuffle(pool).slice(0,Math.min(n,pool.length));
+  curSession=pool;curIdx=0;curCount=0;curCorrect=0;curChapterStats={};
+  renderCurrentQuestion();
+}
+function renderCurrentQuestion(){
+  const box=document.getElementById('practiceArea');
+  if(curIdx>=curSession.length){finishPractice();return;}
+  const it=curSession[curIdx];
+  const subj=state.subjects.find(s=>s.id===it.subjectId);
+  let html='<div class="tip" style="margin:0 0 12px">第 '+(curIdx+1)+'/'+curSession.length+' 题 · '+(subj?subj.name:'')+' · <span class="chapter-pill">'+escapeHtml(it.chapter||'')+'</span></div>';
+  html+='<div style="font-size:15px;font-weight:600;margin-bottom:12px">'+escapeHtml(it.q)+'</div>';
+  html+='<div id="optList">'+it.opts.map((o,i)=>'<button class="opt" onclick="answerQuestion('+i+')">'+'ABCD'[i]+'. '+escapeHtml(o)+'</button>').join('')+'</div>';
+  html+='<div id="explainBox"></div>';
+  box.innerHTML=html;
+}
+function answerQuestion(i){
+  const it=curSession[curIdx];
+  const correct = i===it.answer;
+  recordOnePractice(it,i);
+  const opts=document.querySelectorAll('#optList .opt');
+  opts.forEach((b,idx)=>{
+    b.onclick=null;
+    if(idx===it.answer)b.classList.add('correct');
+    else if(idx===i)b.classList.add('wrong');
+    else b.classList.add('disabled');
+  });
+  const ex=document.getElementById('explainBox');
+  ex.innerHTML='<div class="tip" style="margin-top:12px"><b style="color:'+(correct?'#389e0d':'#cf1322')+'">'+(correct?'✅ 回答正确':'❌ 回答错误')+'（正确答案：'+'ABCD'[it.answer]+'）</b><br>'+escapeHtml(it.explain||'')+'</div>'+
+    '<button class="btn-primary" style="margin-top:10px" onclick="nextQuestion()">'+(curIdx+1<curSession.length?'下一题 →':'查看结果')+'</button>';
+  curCount++;if(correct)curCorrect++;
+  curChapterStats[it.chapter]=curChapterStats[it.chapter]||{t:0,c:0};
+  curChapterStats[it.chapter].t++;if(correct)curChapterStats[it.chapter].c++;
+}
+function nextQuestion(){curIdx++;renderCurrentQuestion();}
+function recordOnePractice(it,userAns){
+  const correct = userAns===it.answer;
+  state.practice.push({id:rid(),ts:Date.now(),bankId:it.id,subjectId:it.subjectId,chapter:it.chapter,correct,userAns});
+  const s=state.subjects.find(x=>x.id===it.subjectId);if(s)s.questions=(+s.questions||0)+1;
+  if(!correct){state.wrong[it.id]=state.wrong[it.id]||{firstWrong:fmtDate(new Date()),mastered:false};}
+  persist();
+  renderOverview();renderSubjects();renderWrong();
+}
+function finishPractice(){
+  const box=document.getElementById('practiceArea');
+  const rate=curCount?Math.round(curCorrect/curCount*100):0;
+  let chHtml='';
+  Object.keys(curChapterStats).forEach(ch=>{const s=curChapterStats[ch];const r=Math.round(s.c/s.t*100);chHtml+='<div class="bar-row"><span>'+escapeHtml(ch)+'</span><b>'+s.c+'/'+s.t+' ('+r+'%)</b></div><div class="progress"><i style="width:'+r+'%"></i></div>';});
+  box.innerHTML='<div style="text-align:center"><div class="big-num '+(rate>=60?'ok':'err')+'">'+rate+'%</div><div class="stat-label">本组 '+curCount+' 题 · 正确 '+curCorrect+' 题</div>'+
+    '<div style="margin-top:14px;text-align:left">'+(chHtml||'')+'</div>'+
+    '<button class="btn-primary" style="margin-top:14px" onclick="startPractice()">再练一组</button> <button class="btn-ghost" onclick="switchTab(\'wrong\')">看错题本</button></div>';
+}
+
+/* ===================== 错题本 ===================== */
+function renderWrong(){
+  const ids=Object.keys(state.wrong).filter(k=>!state.wrong[k].mastered);
+  document.getElementById('wrongCount').textContent=ids.length;
+  const box=document.getElementById('wrongList');
+  const stat=document.getElementById('wrongStat');
+  if(!ids.length){box.innerHTML='<span class="muted">暂无错题 🎉 继续保持！</span>';stat.textContent='';return;}
+  const bySub={};
+  ids.forEach(id=>{const b=state.bank.find(x=>x.id===id);if(b)bySub[b.subjectId]=(bySub[b.subjectId]||0)+1;});
+  stat.innerHTML='各科分布：'+state.subjects.filter(s=>bySub[s.id]).map(s=>'<span class="chapter-pill">'+s.name+' '+bySub[s.id]+'</span>').join(' ');
+  box.innerHTML=ids.map(id=>{
+    const b=state.bank.find(x=>x.id===id);if(!b)return '';
+    const rec=[...state.practice].reverse().find(p=>p.bankId===id&&!p.correct);
+    return '<div class="wrong-item"><div style="font-weight:600">'+escapeHtml(b.q)+'</div>'+
+      '<div class="muted" style="margin:4px 0">'+subjName(b.subjectId)+' · <span class="chapter-pill">'+escapeHtml(b.chapter||'')+'</span></div>'+
+      '<div class="bar-row"><span>你的答案</span><b style="color:#cf1322">'+(rec?('ABCD'[rec.userAns]):'—')+'</b></div>'+
+      '<div class="bar-row"><span>正确答案</span><b style="color:#389e0d">'+(b.answer>=0&&b.answer<4?'ABCD'[b.answer]:'—')+'</b></div>'+
+      '<div class="tip" style="margin:6px 0">'+escapeHtml(b.explain||'')+'</div>'+
+      '<button class="btn-sm btn-ghost" onclick="masterWrong(\''+id+'\')">标记为已掌握</button></div>';
+  }).join('');
+}
+function masterWrong(id){if(state.wrong[id])state.wrong[id].mastered=true;persist();renderWrong();}
+function exportWrong(){
+  const ids=Object.keys(state.wrong).filter(k=>!state.wrong[k].mastered);
+  if(!ids.length){alert('没有可导出的错题');return;}
+  let txt='【法考错题本导出】  导出时间：'+fmtDate(new Date())+'\n\n';
+  ids.forEach((id,i)=>{const b=state.bank.find(x=>x.id===id);if(!b)return;
+    txt+=(i+1)+'. ['+subjName(b.subjectId)+' / '+(b.chapter||'')+']\n题干：'+b.q+'\n选项：\n'+b.opts.map((o,k)=>'  '+'ABCD'[k]+'. '+o).join('\n')+'\n正确答案：'+('ABCD'[b.answer])+'\n解析：'+(b.explain||'')+'\n\n';});
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='法考错题本_'+fmtDate(new Date())+'.txt';a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+
+/* ===================== Tab 切换 ===================== */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(name).classList.remove('hidden');
+  if(name==='overview')renderOverview();
+  if(name==='subjects')renderSubjects();
+  if(name==='resources')renderResources();
+  if(name==='practice'){fillPracticeSelectors();renderBankOverview();}
+  if(name==='wrong')renderWrong();
+  if(name==='affairs')renderAffairs();
+}
+document.getElementById('tabs').addEventListener('click',e=>{if(e.target.classList.contains('tab'))switchTab(e.target.dataset.tab);});
+document.getElementById('pfSubject').addEventListener('change',syncChapterSelect);
+
+/* ===================== 云端同步 ===================== */
+let syncCfg = load('fk_sync', {provider:'off', serverUrl:'', token:'', device:'设备-'+rid().slice(0,4), enabled:false, ghRepo:'sharon911586114-spec/fakao-data', ghBranch:'main', ghPath:'data/fk-data.json', ghToken:''});
+let syncMeta = load('fk_syncMeta', {remoteUpdatedAt:0, lastAppliedAt:0, lastPushAt:0, ghSha:null});
+let _pushTimer=null, _pollTimer=null;
+function renderSyncPill(){
+  const pill=document.getElementById('syncPill'); if(!pill)return;
+  const active = syncCfg.enabled && syncCfg.provider!=='off' && (syncCfg.provider==='github'? syncCfg.ghRepo : syncCfg.serverUrl);
+  if(!active){pill.textContent='☁️ 未同步';pill.className='sync-pill off';return;}
+  if(syncMeta.lastAppliedAt){
+    const d=new Date(syncMeta.lastAppliedAt);
+    pill.textContent='☁️ 已同步 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    pill.className='sync-pill on';
+  } else {pill.textContent='☁️ 同步中…';pill.className='sync-pill busy';}
+}
+function openSyncPanel(){
+  document.getElementById('sfProvider').value=syncCfg.provider||'off';
+  document.getElementById('sfUrl').value=syncCfg.serverUrl||'';
+  document.getElementById('sfToken').value=syncCfg.token||'';
+  document.getElementById('sfDevice').value=syncCfg.device||'';
+  document.getElementById('sfGhRepo').value=syncCfg.ghRepo||'';
+  document.getElementById('sfGhBranch').value=syncCfg.ghBranch||'main';
+  document.getElementById('sfGhPath').value=syncCfg.ghPath||'data/fk-data.json';
+  document.getElementById('sfGhToken').value=syncCfg.ghToken||'';
+  document.getElementById('sfEnable').checked=syncCfg.enabled;
+  toggleSyncBoxes();
+  document.getElementById('syncPanel').classList.remove('hidden');
+  renderSyncPill();
+}
+function toggleSyncBoxes(){
+  const p=document.getElementById('sfProvider').value;
+  document.getElementById('boxServer').classList.toggle('hidden', p!=='server');
+  document.getElementById('boxGithub').classList.toggle('hidden', p!=='github');
+}
+function closeSyncPanel(){document.getElementById('syncPanel').classList.add('hidden');}
+function saveSyncCfg(){
+  syncCfg.provider=document.getElementById('sfProvider').value||'off';
+  syncCfg.serverUrl=(document.getElementById('sfUrl').value||'').trim().replace(/\/+$/,'');
+  syncCfg.token=(document.getElementById('sfToken').value||'').trim();
+  syncCfg.device=(document.getElementById('sfDevice').value||'').trim()||('设备-'+rid().slice(0,4));
+  syncCfg.ghRepo=(document.getElementById('sfGhRepo').value||'').trim();
+  syncCfg.ghBranch=(document.getElementById('sfGhBranch').value||'main').trim()||'main';
+  syncCfg.ghPath=(document.getElementById('sfGhPath').value||'data/fk-data.json').trim()||'data/fk-data.json';
+  syncCfg.ghToken=(document.getElementById('sfGhToken').value||'').trim();
+  syncCfg.enabled=document.getElementById('sfEnable').checked && syncCfg.provider!=='off';
+  syncMeta.ghSha=null;
+  save('fk_sync',syncCfg); save('fk_syncMeta',syncMeta);
+  closeSyncPanel(); renderSyncPill(); initSync();
+}
+function syncHeaders(){const h={'Content-Type':'application/json'};
+  if(syncCfg.provider==='github'){ if(syncCfg.ghToken)h['Authorization']='Bearer '+syncCfg.ghToken; }
+  else { if(syncCfg.token)h['x-sync-token']=syncCfg.token; }
+  return h;}
+function applyRemote(remote,updatedAt,device){
+  if(!remote)return;
+  const remoteNewer = updatedAt > (syncMeta.lastAppliedAt||0);
+  // 刷题记录：按 id 并集（两设备记录都保留，真正“同步到一起”）
+  const seen=new Set(state.practice.map(p=>p.id));
+  const practice=[...state.practice];
+  (remote.practice||[]).forEach(p=>{ if(!seen.has(p.id)) practice.push(p); });
+  // 错题：按 bankId 并集，已掌握优先
+  const wrong={...state.wrong};
+  Object.keys(remote.wrong||{}).forEach(k=>{
+    const r=remote.wrong[k];
+    wrong[k]= wrong[k] ? {firstWrong:wrong[k].firstWrong||r.firstWrong, mastered: wrong[k].mastered||r.mastered} : {...r};
+  });
+  // 科目：按 id 合并；重叠时进度/刷题数取较大值，其余字段取较新一侧
+  const smap={};
+  state.subjects.forEach(s=>smap[s.id]={...s});
+  (remote.subjects||[]).forEach(rs=>{
+    const ls=smap[rs.id];
+    if(!ls){ smap[rs.id]={...rs}; return; }
+    smap[rs.id]={
+      ...ls,
+      progress: Math.max(+ls.progress||0, +rs.progress||0),
+      questions: Math.max(+ls.questions||0, +rs.questions||0),
+      mastery: remoteNewer? rs.mastery : ls.mastery,
+      notes: remoteNewer? rs.notes : ls.notes,
+    };
+  });
+  const subjects=Object.values(smap);
+  // 资料：按 id 合并，重叠时取较新一侧（remoteNewer 取 remote）
+  const rmap={};
+  state.resources.forEach(r=>rmap[r.id]={...r});
+  (remote.resources||[]).forEach(rr=>{
+    const lr=rmap[rr.id];
+    if(!lr){ rmap[rr.id]={...rr}; return; }
+    rmap[rr.id]= remoteNewer? {...rr} : {...lr};
+  });
+  const resources=Object.values(rmap);
+  // 题库：按 id 并集
+  const bmap={}, bank=[...state.bank];
+  bank.forEach(b=>bmap[b.id]=1);
+  (remote.bank||[]).forEach(b=>{ if(!bmap[b.id]) bank.push(b); });
+  // profile：取较新一侧
+  const profile= remoteNewer? {...remote.profile} : {...state.profile};
+  state={ profile, subjects, resources, bank, practice, wrong };
+  persist();
+  syncMeta.lastAppliedAt=updatedAt; syncMeta.remoteUpdatedAt=updatedAt; save('fk_syncMeta',syncMeta);
+  renderOverview();renderSubjects();renderResources();renderAffairs();
+  fillPracticeSelectors();renderBankOverview();renderWrong();
+  renderSyncPill();
+}
+/* ---------- GitHub 仓库作为数据后端 ---------- */
+function ghApi(method, path, body){
+  const url='https://api.github.com/repos/'+encodeURIComponent(syncCfg.ghRepo)+'/contents/'+path+'?ref='+encodeURIComponent(syncCfg.ghBranch);
+  const opt={method, headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+syncCfg.ghToken}};
+  if(body){opt.body=JSON.stringify(body); opt.headers['Content-Type']='application/json';}
+  return fetch(url,opt);
+}
+function ghEncode(str){return btoa(unescape(encodeURIComponent(str)));}
+function ghDecode(b64){return decodeURIComponent(escape(atob((b64||'').replace(/\s/g,''))));}
+function ghFetch(){
+  return ghApi('GET', syncCfg.ghPath).then(r=>{
+    if(r.status===404) return {sha:null, updatedAt:0, state:null};
+    if(!r.ok) throw new Error('gh GET '+r.status);
+    return r.json().then(j=>{
+      let updatedAt=0, st=null;
+      try{ const obj=JSON.parse(ghDecode(j.content)); updatedAt=obj.updatedAt||0; st=obj.state||null; }catch(e){}
+      return {sha:j.sha, updatedAt, state:st};
+    });
+  });
+}
+function ghPush(){
+  if(!syncCfg.enabled||syncCfg.provider!=='github'||!syncCfg.ghRepo||!syncCfg.ghToken) return Promise.resolve();
+  const updatedAt=Date.now();
+  const content=ghEncode(JSON.stringify({updatedAt, device:syncCfg.device, state}));
+  const doPut=(sha)=> ghApi('PUT', syncCfg.ghPath, {message:'法考工作台数据同步 '+new Date().toISOString(), content, sha: sha||undefined, branch: syncCfg.ghBranch})
+    .then(r=>{ if(!r.ok) throw new Error('gh PUT '+r.status); return r.json(); })
+    .then(j=>{ syncMeta.ghSha=j.content? j.content.sha : (j.sha||null); syncMeta.lastAppliedAt=updatedAt; syncMeta.lastPushAt=updatedAt; save('fk_syncMeta',syncMeta); renderSyncPill(); });
+  if(syncMeta.ghSha) return doPut(syncMeta.ghSha).catch(e=>{
+    if(String(e.message).indexOf('409')>=0){
+      return ghFetch().then(f=>{ syncMeta.ghSha=f.sha; if(f.state && f.updatedAt>(syncMeta.lastAppliedAt||0)) applyRemote(f.state, f.updatedAt, 'github'); return doPut(syncMeta.ghSha); });
+    }
+    throw e;
+  });
+  return ghFetch().then(f=>{ syncMeta.ghSha=f.sha; return doPut(f.sha); });
+}
+function ghPull(){
+  if(!syncCfg.enabled||syncCfg.provider!=='github'||!syncCfg.ghRepo||!syncCfg.ghToken) return Promise.resolve();
+  return ghFetch().then(f=>{
+    if(f.state && f.updatedAt>(syncMeta.lastAppliedAt||0)){ applyRemote(f.state, f.updatedAt, 'github'); toast('已从 GitHub 同步最新数据'); }
+    else if(!f.sha && !syncMeta.lastAppliedAt){ return ghPush(); }
+    syncMeta.ghSha=f.sha; save('fk_syncMeta',syncMeta);
+  }).catch(e=>{ console.warn('gh pull 失败',e); });
+}
+
+/* ---------- 自建服务器后端（原有） ---------- */
+function pullRemote(){
+  if(!syncCfg.enabled||syncCfg.provider!=='server'||!syncCfg.serverUrl)return Promise.resolve();
+  const url=syncCfg.serverUrl+'/api/state?key=main&token='+encodeURIComponent(syncCfg.token||'');
+  return fetch(url,{headers:syncHeaders()}).then(r=>{if(!r.ok)throw new Error('pull '+r.status);return r.json();}).then(d=>{
+    if(d.updatedAt && d.updatedAt>syncMeta.lastAppliedAt){applyRemote(d.state,d.updatedAt,d.device);toast('已从云端同步最新数据');}
+    else if((d.updatedAt||0)===0 && syncMeta.lastAppliedAt===0){pushLocal();}
+    syncMeta.remoteUpdatedAt=d.updatedAt||0; save('fk_syncMeta',syncMeta);
+  }).catch(e=>{console.warn('pull失败',e);});
+}
+function pushLocal(){
+  if(!syncCfg.enabled||syncCfg.provider!=='server'||!syncCfg.serverUrl)return Promise.resolve();
+  const updatedAt=Date.now();
+  const payload={key:'main',token:syncCfg.token,device:syncCfg.device,updatedAt,state};
+  return fetch(syncCfg.serverUrl+'/api/state',{method:'POST',headers:syncHeaders(),body:JSON.stringify(payload)}).then(r=>{
+    if(r.status===409)return pullRemote();
+    if(!r.ok)throw new Error('push '+r.status);
+    syncMeta.lastAppliedAt=updatedAt; syncMeta.remoteUpdatedAt=updatedAt; save('fk_syncMeta',syncMeta); renderSyncPill();
+  }).catch(e=>{console.warn('push失败',e);});
+}
+function schedulePush(){
+  if(!syncCfg.enabled||syncCfg.provider==='off')return;
+  clearTimeout(_pushTimer);
+  _pushTimer=setTimeout(()=>{ if(syncCfg.provider==='github') ghPush(); else pushLocal(); },1500);
+}
+function manualSync(){
+  if(!syncCfg.enabled||syncCfg.provider==='off'){toast('请先选择存储方式并保存');openSyncPanel();return;}
+  renderSyncPill();
+  const p = syncCfg.provider==='github' ? ghPull().then(()=>ghPush()) : pushLocal().then(()=>pullRemote());
+  p.then(()=>{toast('同步完成');renderSyncPill();}).catch(e=>{toast('同步出错：'+((e&&e.message)||e));});
+}
+function startSyncPolling(){
+  clearInterval(_pollTimer);
+  if(syncCfg.enabled&&syncCfg.provider!=='off'){
+    const fn = syncCfg.provider==='github'? ghPull : pullRemote;
+    _pollTimer=setInterval(fn,30000);
+  }
+}
+function initSync(){
+  renderSyncPill();
+  if(syncCfg.enabled&&syncCfg.provider!=='off'){
+    const first = syncCfg.provider==='github'? ghPull() : pullRemote();
+    first.then(()=>startSyncPolling());
+  } else { clearInterval(_pollTimer); }
+}
+function toast(msg){
+  const t=document.getElementById('syncToast'); if(!t)return;
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+/* ===================== 初始化 ===================== */
+document.getElementById('todayPill').textContent='今天：'+TODAY_KEY;
+renderOverview();renderSubjects();renderResources();renderAffairs();
+fillPracticeSelectors();renderBankOverview();
+renderSyncPill();initSync();
+</script>
+</body>
+</html>
