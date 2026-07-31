@@ -119,6 +119,39 @@
   .res-item .meta{flex:1;min-width:0}
   .res-item .meta b{display:block;font-size:14px;margin-bottom:2px}
   .res-item .meta span{font-size:12px;word-break:break-all}
+  /* 全屏一题一页刷题覆盖层 */
+  .quiz-overlay{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .quiz-overlay.hidden{display:none}
+  .quiz-top{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--shadow);z-index:10}
+  .quiz-top .qt-title{font-size:15px;font-weight:600;white-space:nowrap}
+  .quiz-top .qt-progress{flex:1;min-width:120px}
+  .quiz-top .qt-count{font-size:13px;color:var(--text-2);white-space:nowrap}
+  .quiz-body{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px 18px 40px}
+  .quiz-card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:24px;width:100%;max-width:680px}
+  .quiz-q{font-size:16px;font-weight:600;line-height:1.7;margin-bottom:18px}
+  .quiz-meta{font-size:12px;color:var(--text-3);margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .quiz-opt{display:block;width:100%;text-align:left;background:#fafcff;border:2px solid #d9d9d9;border-radius:10px;padding:14px 16px;margin-bottom:10px;font-size:14px;cursor:pointer;transition:.15s;line-height:1.5}
+  .quiz-opt:hover{border-color:var(--primary);background:#e6f4ff}
+  .quiz-opt.correct{background:#f6ffed;border-color:#b7eb8f;color:#389e0d;font-weight:600}
+  .quiz-opt.wrong{background:#fff1f0;border-color:#ffccc7;color:#cf1322}
+  .quiz-opt.disabled{opacity:.5;cursor:default}
+  .quiz-opt .opt-letter{font-weight:700;margin-right:6px}
+  .quiz-explain{margin-top:14px;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.6}
+  .quiz-explain.ok{background:#f6ffed;border:1px solid #b7eb8f}
+  .quiz-explain.bad{background:#fff1f0;border:1px solid #ffccc7}
+  .quiz-nav{display:flex;gap:10px;margin-top:18px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+  .quiz-result{text-align:center;padding:20px 0}
+  .quiz-result .qr-score{font-size:48px;font-weight:700;line-height:1.1}
+  .quiz-result .qr-sub{font-size:14px;color:var(--text-2);margin-top:6px}
+  .quiz-result .qr-chapters{margin:20px 0;text-align:left}
+  .quiz-result .qr-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .quiz-finish-btn{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--border);padding:10px 18px;display:flex;justify-content:center;gap:10px}
+  @media(max-width:560px){
+    .quiz-card{padding:18px 16px;border-radius:0;box-shadow:none}
+    .quiz-body{padding:0}
+    .quiz-q{font-size:15px}
+    .quiz-opt{padding:12px 14px;font-size:13px}
+  }
 </style>
 </head>
 <body>
@@ -261,7 +294,7 @@
           <div><label class="fl">出题数量</label><input id="pfNum" type="number" min="1" value="5"></div>
           <div style="flex:0"><label class="fl">&nbsp;</label><button class="btn-primary" onclick="startPractice()">开始练习</button></div>
         </div>
-        <div class="tip" style="margin-top:12px">💡 题库为内置练习（含公开真题整理 + 考点题，共 23 题）。每答一题自动计入刷题统计、章节正确率与错题本。当前题库 <b id="bankCount">0</b> 题。</div>
+        <div class="tip" style="margin-top:12px">💡 题库为内置练习（含公开真题整理 + 考点题，共 <b id="bankCount">0</b> 题）。点击「开始练习」进入全屏一题一页模式，答完自动出结果。</div>
       </div>
       <div class="card">
         <h3>📚 题库概览</h3>
@@ -270,10 +303,24 @@
     </div>
 
     <div class="card" style="margin-top:16px">
-      <h3>📝 答题区</h3>
-      <div id="practiceArea"><span class="muted">选择条件后点「开始练习」。</span></div>
+      <h3>🕐 最近练习记录</h3>
+      <div id="practiceArea"><span class="muted">暂无练习记录，点上方「开始练习」开始刷题。</span></div>
     </div>
   </section>
+
+  <!-- ========== 全屏一题一页刷题覆盖层 ========== -->
+  <div id="quizMode" class="quiz-overlay hidden">
+    <div class="quiz-top">
+      <span class="qt-title" id="quizTitle">刷题练习</span>
+      <div class="qt-progress"><div class="progress"><i id="quizProgressBar" style="width:0%"></i></div></div>
+      <span class="qt-count" id="quizCount">0/0</span>
+      <button class="btn-ghost btn-sm" onclick="exitQuiz()">✕ 退出</button>
+    </div>
+    <div class="quiz-body" id="quizBody"></div>
+    <div class="quiz-finish-btn hidden" id="quizFinishBar">
+      <button class="btn-primary" onclick="finishQuiz()">查看结果</button>
+    </div>
+  </div>
 
   <!-- ========== 错题本 ========== -->
   <section id="wrong" class="tab-pane hidden">
@@ -401,6 +448,67 @@ const DEFAULT_BANK = [
   // 三国法
   {id:'k22',subjectId:'sg',chapter:'国际私法·合同之债',q:'涉外合同当事人未选择适用法律时，我国冲突规范一般适用？',opts:['一律适用中国法','与合同有最密切联系的国家/地区法律','原告住所地法','联合国公约'],answer:1,explain:'当事人未选择的，适用履行义务最能体现合同特征的一方经常居所地法或其他最密切联系法律。',src:'考点'},
   {id:'k23',subjectId:'sg',chapter:'国际公法·外交特权',q:'根据外交特权与豁免，外交代表对其下列何行为享有刑事管辖豁免？',opts:['以私人身份参与的继承','在其使馆外购置不动产','执行公务中的犯罪行为','商业经营活动'],answer:2,explain:'外交代表享有刑事管辖豁免且非可放弃；私人不动产、继承、商业活动不享有豁免。',src:'考点'},
+  // 刑法 补充
+  {id:'k24',subjectId:'x',chapter:'共同犯罪',q:'甲教唆乙盗窃，乙在盗窃过程中被被害人发现，将被害人打成轻伤后逃离。下列哪一选项正确？',opts:['甲构成盗窃罪教唆，对乙的故意伤害不担责','甲与乙构成抢劫罪共犯','甲不构成犯罪','乙构成抢劫罪，甲构成盗窃罪既遂'],answer:0,explain:'实行过限：乙超出共同盗窃故意实施伤害行为，甲对该过限行为不担责，仅在盗窃罪范围内负责。',src:'考点'},
+  {id:'k25',subjectId:'x',chapter:'罪数形态',q:'甲在道路上醉酒驾驶，发生交通事故致一人死亡后逃逸。甲的行为构成？',opts:['危险驾驶罪一罪','交通肇事罪一罪','以危险方法危害公共安全罪','危险驾驶罪与交通肇事罪数罪并罚'],answer:3,explain:'醉酒驾驶构成危险驾驶罪，肇事致人死亡构成交通肇事罪，应数罪并罚。逃逸作为交通肇事罪加重情节。',src:'考点'},
+  {id:'k26',subjectId:'x',chapter:'刑罚体系',q:'关于死刑适用的限制，下列哪一说法正确？',opts:['犯罪时不满18周岁的人不适用死刑','审判时怀孕的妇女可以适用死刑','审判时已满75周岁的人一律不适用死刑','死刑只适用于危害国家安全罪'],answer:0,explain:'死刑不适用于犯罪时不满18周岁的人和审判时怀孕的妇女；已满75周岁以特别残忍手段致人死亡的除外。',src:'考点'},
+  {id:'k27',subjectId:'x',chapter:'数罪并罚',q:'甲犯三罪分别被判处10年、8年、7年有期徒刑，总和刑期25年不满35年，数罪并罚最高不能超过？',opts:['20年','25年','30年','35年'],answer:0,explain:'总和刑期不满35年的，最高不能超过20年；总和刑期35年以上的，最高不能超过25年。',src:'考点'},
+  {id:'k28',subjectId:'x',chapter:'量刑情节',q:'犯罪后自动投案并如实供述自己罪行的，构成自首。对于自首的犯罪分子，下列哪一说法正确？',opts:['可以从轻或减轻处罚','应当从轻或减轻处罚','应当减轻处罚','可以从轻但不可以减轻处罚'],answer:0,explain:'自首的可以从轻或减轻处罚；犯罪较轻的可以免除处罚。"可以"而非"应当"，法官有裁量权。',src:'考点'},
+  {id:'k29',subjectId:'x',chapter:'量刑情节',q:'关于一般累犯的成立条件，下列哪一说法错误？',opts:['前罪和后罪都是故意犯罪','前罪被判有期徒刑以上刑罚','后罪应当在前罪刑罚执行完毕或赦免以后五年内','前后罪中至少有一罪是过失犯罪'],answer:3,explain:'累犯要求前后罪均为故意犯罪，过失犯罪不构成累犯。D选项说法错误，为本题答案。',src:'考点'},
+  {id:'k30',subjectId:'x',chapter:'财产犯罪',q:'甲以暴力威胁被害人当场交付财物，下列哪一说法正确？',opts:['构成敲诈勒索罪','构成抢劫罪','构成抢夺罪','构成寻衅滋事罪'],answer:1,explain:'当场以暴力、胁迫或其他方法压制被害人反抗并当场取财，构成抢劫罪。敲诈勒索罪不具有当场性暴力特征。',src:'考点'},
+  {id:'k31',subjectId:'x',chapter:'财产犯罪',q:'甲将代为保管的他人财物拒不退还，数额较大，构成？',opts:['盗窃罪','侵占罪','诈骗罪','挪用资金罪'],answer:1,explain:'侵占罪是将代为保管的他人财物、遗忘物或埋藏物非法占为己有，数额较大且拒不退还的行为。',src:'考点'},
+  {id:'k32',subjectId:'x',chapter:'职务犯罪',q:'国家工作人员利用职务上的便利，侵吞、窃取、骗取公共财物的行为构成？',opts:['职务侵占罪','贪污罪','盗窃罪','诈骗罪'],answer:1,explain:'国家工作人员利用职务便利非法占有公共财物构成贪污罪；非国家工作人员则构成职务侵占罪。',src:'考点'},
+  // 刑诉 补充
+  {id:'k33',subjectId:'xs',chapter:'强制措施',q:'关于逮捕的条件，下列哪一说法正确？',opts:['有证据证明有犯罪事实即可逮捕','可能判处徒刑以上刑罚且采取取保候审不足以防止社会危险性','逮捕不需要任何证据','只要有犯罪嫌疑就可以逮捕'],answer:1,explain:'逮捕需满足：有证据证明有犯罪事实；可能判处徒刑以上刑罚；取保候审不足以防止社会危险性。',src:'考点'},
+  {id:'k34',subjectId:'xs',chapter:'侦查与羁押',q:'一般刑事案件中，侦查机关对犯罪嫌疑人的侦查羁押期限（从逮捕后起算）最长不得超过？',opts:['2个月','3个月','7个月','12个月'],answer:2,explain:'一般侦查羁押期限不超过2个月；案情复杂经批准可延长1个月（3个月）；重大复杂案件可延长至7个月。',src:'考点'},
+  {id:'k35',subjectId:'xs',chapter:'审查起诉',q:'人民检察院对于公安机关移送起诉的案件，应当在一个月以内作出决定，重大复杂的案件可以延长？',opts:['10日','15日','30日','60日'],answer:1,explain:'审查起诉期限为1个月，重大复杂案件可以延长15日。改变管辖的从收到案件之日起计算。',src:'考点'},
+  {id:'k36',subjectId:'xs',chapter:'审判程序',q:'关于刑事简易程序，下列哪一说法正确？',opts:['适用于所有刑事案件','被告人是盲聋哑人的可以适用简易程序','案件事实清楚、证据充分，被告人认罪且同意适用的可适用','简易程序不宣判'],answer:2,explain:'简易程序适用条件：事实清楚、证据充分；被告人承认犯罪事实且同意适用。盲聋哑人、限制行为能力人等不适用。',src:'考点'},
+  {id:'k37',subjectId:'xs',chapter:'审判程序',q:'第二审人民法院审理上诉案件，下列哪一说法正确？',opts:['一律开庭审理','一律书面审理','死刑案件等应当开庭审理，其他可以不开庭','二审不需要审查一审判决'],answer:2,explain:'二审应当组成合议庭开庭审理；经阅卷、讯问被告人等后认为事实清楚的可以不开庭。死刑案件必须开庭。',src:'考点'},
+  // 民法 补充
+  {id:'k38',subjectId:'m',chapter:'物权变动',q:'关于不动产登记的效力，我国采取的是？',opts:['登记对抗主义','登记要件主义（债权形式主义）','登记作为合同生效要件','不登记不影响物权'],answer:1,explain:'我国物权变动采债权形式主义：合同有效+登记=物权变动。不动产未经登记不发生物权效力，但合同效力独立于登记。',src:'考点'},
+  {id:'k39',subjectId:'m',chapter:'代理',q:'行为人没有代理权而以被代理人名义订立合同，相对人有理由相信行为人有代理权的，该代理行为？',opts:['无效','效力待定','有效（表见代理）','可撤销'],answer:2,explain:'表见代理：相对人善意且有理由相信行为人有代理权的，代理行为有效，保护交易安全。',src:'考点'},
+  {id:'k40',subjectId:'m',chapter:'合同法',q:'当事人一方迟延履行主要债务，经催告后在合理期限内仍未履行的，对方可以？',opts:['直接解除合同','请求法院解除合同','催告后在合理期限内未履行可解除合同','不能解除合同'],answer:2,explain:'法定解除事由之一：迟延履行主要债务，经催告后在合理期限内仍未履行，当事人可以解除合同。',src:'考点'},
+  {id:'k41',subjectId:'m',chapter:'担保制度',q:'保证方式没有约定或约定不明确的，按照《民法典》，保证人承担？',opts:['连带保证责任','一般保证责任','不承担保证责任','先诉抗辩权消灭'],answer:1,explain:'《民法典》686条：没有约定或约定不明确的，按一般保证承担保证责任（与原《担保法》相反，原为连带保证）。',src:'考点'},
+  {id:'k42',subjectId:'m',chapter:'侵权责任',q:'饲养的动物造成他人损害的，动物饲养人承担的归责原则是？',opts:['过错责任','过错推定责任','无过错责任','公平责任'],answer:2,explain:'饲养动物致人损害适用无过错责任（饲养人或管理人），被侵权人故意或重大过失可减轻或免除责任。',src:'考点'},
+  {id:'k43',subjectId:'m',chapter:'婚姻家庭',q:'下列财产中，属于夫妻共同财产的是？',opts:['一方婚前所有的房屋','一方因身体受到伤害获得的医疗费','婚姻存续期间所得的工资、奖金','一方专用的生活用品'],answer:2,explain:'婚姻关系存续期间所得的工资、奖金等属夫妻共同财产。婚前财产、人身损害赔偿、专用生活用品为个人财产。',src:'考点'},
+  {id:'k44',subjectId:'m',chapter:'继承法',q:'在没有遗嘱的情况下，法定继承第一顺序继承人包括？',opts:['兄弟姐妹','配偶、子女、父母','祖父母、外祖父母','孙子女'],answer:1,explain:'第一顺序：配偶、子女、父母。第二顺序：兄弟姐妹、祖父母、外祖父母。无第一顺序继承人时第二顺序继承。',src:'考点'},
+  {id:'k45',subjectId:'m',chapter:'物权·所有权',q:'拾得遗失物后，拾得人的义务包括？',opts:['可以自己占有','应当返还权利人或送交公安等有关部门','可以变卖后将价款上交','拾得即取得所有权'],answer:1,explain:'拾得遗失物应当返还权利人或送交公安等有关部门。拾得人不能取得所有权，拾得前应妥善保管。',src:'考点'},
+  // 民诉 补充
+  {id:'k46',subjectId:'ms',chapter:'回避制度',q:'关于民事诉讼中的回避，下列哪一说法正确？',opts:['回避只适用于审判人员','书记员、翻译人员、鉴定人、勘验人均适用回避','回避申请必须在开庭前提出','院长回避由审判长决定'],answer:1,explain:'回避适用于审判人员、书记员、翻译人员、鉴定人、勘验人。院长回避由审判委员会决定。',src:'考点'},
+  {id:'k47',subjectId:'ms',chapter:'审判程序',q:'关于民事简易程序的适用条件，下列哪一说法正确？',opts:['适用于所有民事案件','基层法院及其派出法庭审理事实清楚、权利义务关系明确、争议不大的简单民事案件','中级法院也可适用简易程序','适用简易程序的不宣判'],answer:1,explain:'简易程序适用于基层法院审理的简单民事案件（事实清楚、权利义务关系明确、争议不大）。中级法院不适用简易程序。',src:'考点'},
+  {id:'k48',subjectId:'ms',chapter:'证据制度',q:'下列哪一项不属于民事诉讼法规定的证据种类？',opts:['书证','证人证言','测谎结论','电子数据'],answer:2,explain:'民事诉讼证据包括：当事人陈述、书证、物证、视听资料、电子数据、证人证言、鉴定意见、勘验笔录。测谎结论不是法定证据。',src:'考点'},
+  {id:'k49',subjectId:'ms',chapter:'审判程序',q:'第二审人民法院对上诉案件，应当组成合议庭开庭审理。经阅卷和调查后认为不需要开庭的，可以不开庭。二审审理范围限于？',opts:['当事人的上诉请求','一审全部诉讼标的','法院认为需要审查的全部事实','不受任何限制'],answer:0,explain:'二审审理范围限于当事人的上诉请求，但一审判决违反法律禁止性规定或损害国家利益、社会公共利益的除外。',src:'考点'},
+  {id:'k50',subjectId:'ms',chapter:'执行程序',q:'申请执行的期间为？',opts:['6个月','1年','2年','3年'],answer:2,explain:'申请执行期间为2年，从法律文书规定履行期间最后一日起算；未规定履行期间的从法律文书生效之日起算。',src:'考点'},
+  // 行政法 补充
+  {id:'k51',subjectId:'xz',chapter:'行政许可',q:'关于行政许可的设定，下列哪一说法正确？',opts:['部门规章可以设定行政许可','地方性法规可以设定行政许可','省级政府规章可以设定永久性行政许可','国务院部门文件可以设定行政许可'],answer:1,explain:'法律可设定所有事项的行政许可；行政法规在尚未制定法律时设定；地方性法规可设定；省级政府规章只能设定临时性行政许可（1年内）。',src:'考点'},
+  {id:'k52',subjectId:'xz',chapter:'行政强制',q:'下列哪一措施属于行政强制措施而非行政强制执行？',opts:['加处罚款','划拨存款','查封场所、设施或财物','代履行'],answer:2,explain:'查封、扣押、冻结等属于行政强制措施（预防或制止违法）；加处罚款、划拨存款、代履行等属于行政强制执行（促使履行义务）。',src:'考点'},
+  {id:'k53',subjectId:'xz',chapter:'行政诉讼',q:'下列哪一项不属于行政诉讼受案范围？',opts:['对行政拘留不服','对罚款不服','对行政机关发布的具有普遍约束力的命令不服','对吊销许可证不服'],answer:2,explain:'行政诉讼不受理：国家行为、抽象行政行为（具有普遍约束力的命令、决定）、行政机关内部人事处理、法律规定由行政机关最终裁决的行为。',src:'考点'},
+  {id:'k54',subjectId:'xz',chapter:'行政诉讼',q:'公民直接向法院提起行政诉讼的，应当自知道或者应当知道行政行为之日起多少日内提出？',opts:['15日','30日','60日','6个月'],answer:3,explain:'直接起诉的期限为知道或应当知道行政行为之日起6个月；超过期限的法院不予受理（法律另有规定除外）。',src:'考点'},
+  {id:'k55',subjectId:'xz',chapter:'行政复议',q:'对县级以上地方各级人民政府工作部门的具体行政行为不服的，申请人可以向下列哪一机关申请复议？',opts:['只能向本级人民政府','只能向上一级主管部门','本级人民政府或上一级主管部门','只能向国务院'],answer:2,explain:'对县级以上政府部门具体行政行为不服的，可以向本级人民政府或上一级主管部门申请行政复议（条块选择）。',src:'考点'},
+  {id:'k56',subjectId:'xz',chapter:'国家赔偿',q:'下列哪一情形不属于国家赔偿范围？',opts:['行政机关违法拘留','行政机关违法罚款','行政机关工作人员与行使职权无关的个人行为','行政机关违法征收财产'],answer:2,explain:'与行使职权无关的个人行为不承担国家赔偿责任。行政赔偿限于行政机关及其工作人员在行使行政职权时违法侵害的情形。',src:'考点'},
+  // 商经知 补充
+  {id:'k57',subjectId:'sjz',chapter:'公司法',q:'关于有限责任公司股东会决议，下列哪一说法正确？',opts:['股东会决议一律有效','决议内容违反法律行政法规的无效','程序违法的决议无效','未开会作出的决议有效'],answer:1,explain:'决议内容违反法律行政法规的无效；会议召集程序、表决方式违反法律或章程的决议可撤销（60日内）。',src:'考点'},
+  {id:'k58',subjectId:'sjz',chapter:'公司法',q:'下列哪一项可以用于有限责任公司股东出资？',opts:['信用','劳务','知识产权','自然人姓名权'],answer:2,explain:'出资方式包括货币及可以用货币估价并可依法转让的非货币财产，如知识产权、土地使用权等。信用、劳务、自然人姓名权不可出资。',src:'考点'},
+  {id:'k59',subjectId:'sjz',chapter:'破产法',q:'企业法人不能清偿到期债务，且资产不足以清偿全部债务或者明显缺乏清偿能力的，可以申请？',opts:['解散','破产清算、重整或和解','合并','注销'],answer:1,explain:'破产原因：不能清偿到期债务+资产不足以清偿全部债务或明显缺乏清偿能力。可申请破产清算、重整或和解。',src:'考点'},
+  {id:'k60',subjectId:'sjz',chapter:'保险法',q:'关于保险利益的认定，下列哪一说法正确？',opts:['任何人对任何标的都有保险利益','投保人对保险标的应当具有保险利益','保险利益不需要合法','保险利益可以是非法利益'],answer:1,explain:'投保人对保险标的应当具有保险利益；不具有保险利益的保险合同无效。保险利益须合法、确定、可用货币衡量。',src:'考点'},
+  {id:'k61',subjectId:'sjz',chapter:'票据法',q:'票据行为的独立性（无因性）是指？',opts:['票据行为因原因关系无效而无效','票据行为与原因关系相分离，原因无效不影响票据效力','票据行为需要每次审查原因','票据无效时行为仍然有效'],answer:1,explain:'票据无因性：票据行为一经成立即与原因关系分离。原因关系无效不影响票据行为效力，保护票据流通安全。',src:'考点'},
+  {id:'k62',subjectId:'sjz',chapter:'知识产权',q:'发明专利权的期限为多少年，自申请日起算？',opts:['10年','15年','20年','30年'],answer:2,explain:'发明专利权期限为20年，自申请日起算；实用新型专利权10年；外观设计专利权15年（2021年修改后）。',src:'考点'},
+  // 理论法 补充
+  {id:'k63',subjectId:'ll',chapter:'法的效力',q:'关于法的溯及力，我国刑法采取的原则是？',opts:['从旧原则（一律不溯及既往）','从新原则（一律溯及既往）','从旧兼从轻原则','从新兼从轻原则'],answer:2,explain:'我国刑法采从旧兼从轻原则：原则上适用行为时法，但新法不认为是犯罪或处罚较轻的适用新法。',src:'考点'},
+  {id:'k64',subjectId:'ll',chapter:'法律解释',q:'最高人民法院发布的属于"司法解释"性质的文件，其法律效力位阶是？',opts:['等同于法律','低于法律但高于行政法规','低于行政法规，具有参照适用效力','与部门规章相同'],answer:2,explain:'司法解释在审判中具有参照适用效力，其效力低于法律和行政法规，是全国人大授权的司法解释权。',src:'考点'},
+  {id:'k65',subjectId:'ll',chapter:'宪法',q:'现行宪法是1982年宪法，到目前为止共进行了几次修正？',opts:['3次','4次','5次','6次'],answer:2,explain:'1982年宪法分别于1988年、1993年、1999年、2004年、2018年进行了5次修正。',src:'考点'},
+  {id:'k66',subjectId:'ll',chapter:'宪法',q:'下列哪一项不属于公民的基本权利？',opts:['平等权','选举权和被选举权','依法纳税','人身自由权'],answer:2,explain:'依法纳税是公民的基本义务而非基本权利。基本权利包括平等权、政治权利、人身自由、社会经济文化权利等。',src:'考点'},
+  {id:'k67',subjectId:'ll',chapter:'法治思想',q:'习近平法治思想的核心要义中，关于全面依法治国的首要任务是？',opts:['依宪治国、依宪执政','科学立法','严格执法','公正司法'],answer:0,explain:'全面依法治国首要任务是依宪治国、依宪执政。习近平法治思想"十一个坚持"中第一项即坚持党对全面依法治国的领导，核心是依宪治国。',src:'考点'},
+  {id:'k68',subjectId:'ll',chapter:'司法制度',q:'关于法官的任职回避，下列哪一说法正确？',opts:['法官的配偶可以担任同一法院的法官','法官的子女不得担任该法官所任职法院辖区内律师事务所的合伙人','法官不得在企业兼职','以上都正确'],answer:1,explain:'法官任职回避：配偶、子女不得担任该法官所任职法院辖区内律师事务所的设立人、合伙人；法官不得在企业兼职。',src:'考点'},
+  // 三国法 补充
+  {id:'k69',subjectId:'sg',chapter:'国际公法·国家承认',q:'对新国家或新政府的承认，下列哪一说法正确？',opts:['承认可以附条件','承认一经作出不得撤销','默示承认包括与该国建立领事关系','承认具有溯及力'],answer:3,explain:'国家承认具有溯及力，被承认的新国家或新政府的行为从其成立之日起被视为有效。承认不得附条件；建立领事关系不属于默示承认。',src:'考点'},
+  {id:'k70',subjectId:'sg',chapter:'国际公法·条约法',q:'关于条约的保留，下列哪一说法正确？',opts:['所有条约都可以保留','保留必须经全体缔约国接受','保留在条约允许范围内作出，其他缔约国可接受或反对','保留不影响条约效力'],answer:2,explain:'保留须在条约允许范围内作出；其他缔约国可接受或反对保留。保留与反对保留的效果依《维也纳条约法公约》处理。',src:'考点'},
+  {id:'k71',subjectId:'sg',chapter:'国际私法·物权',q:'关于不动产物权的法律适用，我国《涉外民事关系法律适用法》规定适用？',opts:['法院地法','物之所在地法','当事人选择的法律','动产所有人的属人法'],answer:1,explain:'不动产物权适用物之所在地法。动产物权在当事人没有选择时适用法律事实发生时动产所在地法。',src:'考点'},
+  {id:'k72',subjectId:'sg',chapter:'国际私法·侵权',q:'涉外侵权责任，在当事人没有选择适用法律时，适用？',opts:['法院地法','侵权行为地法','侵权行为地法或共同经常居所地法','被告住所地法'],answer:2,explain:'涉外侵权适用侵权行为地法；但当事人有共同经常居所地的适用共同经常居所地法。当事人可协议选择适用法律。',src:'考点'},
+  {id:'k73',subjectId:'sg',chapter:'国际私法·婚姻',q:'中国公民与外国人结婚的，婚姻的实质要件适用？',opts:['中国法','外国人本国法','婚姻缔结地法','双方共同选择的法律'],answer:2,explain:'涉外结婚的实质要件适用婚姻缔结地法。中国公民与外国人结婚适用婚姻缔结地法律。',src:'考点'},
+  {id:'k74',subjectId:'sg',chapter:'国际经济法·CISG',q:'《联合国国际货物销售合同公约》（CISG）不适用下列哪类买卖？',opts:['跨国货物买卖','不同缔约国营业地当事人之间的货物买卖','供私人使用的消费品买卖','公约缔约国之间当事人的货物买卖'],answer:2,explain:'CISG不适用：供私人使用的消费品买卖；拍卖；依法令执行的扣押；公债、股票、投资证券；电力等。',src:'考点'},
+  {id:'k75',subjectId:'sg',chapter:'国际经济法·贸易术语',q:'在FOB术语下，卖方的主要义务包括？',opts:['办理运输、支付运费','在指定装运港将货物交到买方指定的船上','办理保险','办理进口清关'],answer:1,explain:'FOB（Free on Board）：卖方在指定装运港将货物交到买方指定船上即完成交货，风险转移以船舷为界。买方负责运输、保险和进口清关。',src:'考点'},
+  {id:'k76',subjectId:'sg',chapter:'国际经济法·反倾销',q:'关于WTO反倾销措施，实施反倾销措施的前提条件包括？',opts:['存在倾销、存在损害、倾销与损害之间有因果关系','存在倾销即可','存在损害即可','进口国国内产业利润下降'],answer:0,explain:'反倾销措施三要件：存在倾销（出口价格低于正常价值）、存在实质损害或实质损害威胁、倾销与损害之间有因果关系。三者缺一不可。',src:'考点'},
 ];
 
 /* ===================== 存储 ===================== */
@@ -426,6 +534,12 @@ function persist(){save('fk_profile',state.profile);save('fk_subjects',state.sub
   });
   const have = new Set(state.resources.map(r=>r.name));
   DEFAULT_RESOURCES.forEach(d=>{ if(!have.has(d.name)) state.resources.push({...d,id:rid()}); });
+})();
+
+/* ===================== 题库迁移：按 id 合并新增题目到已有用户数据 ===================== */
+(function migrateBank(){
+  const have = new Set(state.bank.map(b=>b.id));
+  DEFAULT_BANK.forEach(b=>{ if(!have.has(b.id)) state.bank.push({...b}); });
 })();
 
 /* ===================== 工具 ===================== */
@@ -549,8 +663,8 @@ let entjIdx=0;
 function renderEntj(){document.getElementById('entjTip').textContent='💡 '+ENTJ_TIPS[entjIdx%ENTJ_TIPS.length];}
 function rotateEntj(){entjIdx++;renderEntj();}
 
-/* ===================== 刷题练习 ===================== */
-let curSession=[],curIdx=0,curCount=0,curCorrect=0,curChapterStats={};
+/* ===================== 刷题练习（全屏一题一页） ===================== */
+let curSession=[],curIdx=0,curCount=0,curCorrect=0,curChapterStats={},curAnswered=[];
 function fillPracticeSelectors(){
   const ps=document.getElementById('pfSubject');
   if(ps.options.length===0){
@@ -575,46 +689,114 @@ function renderBankOverview(){
     return '<div style="margin-bottom:8px"><b>'+s.name+'</b> <span class="muted">'+items.length+'题</span><br><span>'+chs.map(c=>'<span class="chapter-pill">'+escapeHtml(c)+'</span>').join('')+'</span></div>';
   }).join('')||'<span class="muted">题库为空</span>';
 }
+function renderPracticeHistory(){
+  const box=document.getElementById('practiceArea');
+  const recent=[...state.practice].reverse().slice(0,15);
+  if(!recent.length){box.innerHTML='<span class="muted">暂无练习记录，点上方「开始练习」开始刷题。</span>';return;}
+  box.innerHTML='<div style="font-size:13px;color:var(--text-3);margin-bottom:8px">最近 '+recent.length+' 条答题记录</div>'+
+    recent.map(p=>{
+      const b=state.bank.find(x=>x.id===p.bankId);
+      const t=new Date(p.ts);
+      const timeStr=(t.getMonth()+1)+'/'+t.getDate()+' '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');
+      return '<div class="brush-rec"><div class="b-meta">'+
+        (b?'<b>'+escapeHtml(b.q.length>40?b.q.slice(0,40)+'…':b.q)+'</b><br>':'<b>'+escapeHtml(p.bankId)+'</b><br>')+
+        '<span style="color:var(--text-3)">'+subjName(p.subjectId)+' · '+(p.chapter||'')+' · '+timeStr+'</span></div>'+
+        '<span class="acc-badge '+(p.correct?'acc-good':'acc-bad')+'">'+(p.correct?'✓ 正确':'✗ 错误')+'</span></div>';
+    }).join('');
+}
 function startPractice(){
   const sid=document.getElementById('pfSubject').value;
   const ch=document.getElementById('pfChapter').value;
   const n=Math.max(1,+document.getElementById('pfNum').value||5);
   let pool=state.bank.filter(b=>(sid==='all'||b.subjectId===sid)&&(!ch||b.chapter===ch));
-  if(!pool.length){alert('该范围暂无题目，换条件或先练习已有题目');return;}
+  if(!pool.length){alert('该范围暂无题目，请换条件');return;}
   pool=shuffle(pool).slice(0,Math.min(n,pool.length));
   curSession=pool;curIdx=0;curCount=0;curCorrect=0;curChapterStats={};
-  renderCurrentQuestion();
+  curAnswered=new Array(pool.length).fill(null);
+  document.getElementById('quizTitle').textContent='刷题练习 · '+(sid==='all'?'全部科目':subjName(sid))+(ch?' · '+ch:'');
+  document.getElementById('quizMode').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+  renderQuizQuestion();
 }
-function renderCurrentQuestion(){
-  const box=document.getElementById('practiceArea');
-  if(curIdx>=curSession.length){finishPractice();return;}
+function renderQuizQuestion(){
+  const body=document.getElementById('quizBody');
+  const bar=document.getElementById('quizFinishBar');
+  if(curIdx>=curSession.length){bar.classList.add('hidden');finishQuiz();return;}
   const it=curSession[curIdx];
   const subj=state.subjects.find(s=>s.id===it.subjectId);
-  let html='<div class="tip" style="margin:0 0 12px">第 '+(curIdx+1)+'/'+curSession.length+' 题 · '+(subj?subj.name:'')+' · <span class="chapter-pill">'+escapeHtml(it.chapter||'')+'</span></div>';
-  html+='<div style="font-size:15px;font-weight:600;margin-bottom:12px">'+escapeHtml(it.q)+'</div>';
-  html+='<div id="optList">'+it.opts.map((o,i)=>'<button class="opt" onclick="answerQuestion('+i+')">'+'ABCD'[i]+'. '+escapeHtml(o)+'</button>').join('')+'</div>';
-  html+='<div id="explainBox"></div>';
-  box.innerHTML=html;
+  const answered=curAnswered[curIdx];
+  const pct=Math.round((curIdx)/curSession.length*100);
+  document.getElementById('quizProgressBar').style.width=pct+'%';
+  document.getElementById('quizCount').textContent=(curIdx+1)+' / '+curSession.length;
+  let html='<div class="quiz-card">';
+  html+='<div class="quiz-meta"><span class="chapter-pill">'+(subj?escapeHtml(subj.name):'')+'</span><span class="chapter-pill">'+escapeHtml(it.chapter||'')+'</span><span class="pill">'+(curIdx+1)+'/'+curSession.length+'</span></div>';
+  html+='<div class="quiz-q">'+(curIdx+1)+'. '+escapeHtml(it.q)+'</div>';
+  html+='<div id="quizOptList">'+it.opts.map((o,i)=>{
+    let cls='quiz-opt';
+    if(answered!==null){
+      if(i===it.answer)cls+=' correct';
+      else if(i===answered)cls+=' wrong';
+      else cls+=' disabled';
+    }
+    return '<button class="'+cls+'" '+(answered!==null?'disabled':'')+' onclick="answerQuiz('+i+')"><span class="opt-letter">'+'ABCD'[i]+'</span>'+escapeHtml(o)+'</button>';
+  }).join('')+'</div>';
+  if(answered!==null){
+    const correct=answered===it.answer;
+    html+='<div class="quiz-explain '+(correct?'ok':'bad')+'"><b>'+(correct?'✅ 回答正确':'❌ 回答错误')+'</b>（正确答案：'+'ABCD'[it.answer]+'）<br><br>'+escapeHtml(it.explain||'')+'</div>';
+  }
+  html+='<div class="quiz-nav">';
+  if(curIdx>0)html+='<button class="btn-ghost" onclick="quizPrev()">← 上一题</button>';
+  else html+='<span></span>';
+  if(answered!==null){
+    if(curIdx+1<curSession.length)html+='<button class="btn-primary" onclick="quizNext()">下一题 →</button>';
+    else html+='<button class="btn-primary" onclick="finishQuiz()">查看结果 →</button>';
+  }
+  html+='</div></div>';
+  body.innerHTML=html;
+  bar.classList.add('hidden');
+  body.scrollTop=0;
 }
-function answerQuestion(i){
+function answerQuiz(i){
+  if(curAnswered[curIdx]!==null)return;
   const it=curSession[curIdx];
-  const correct = i===it.answer;
+  const correct=i===it.answer;
+  curAnswered[curIdx]=i;
   recordOnePractice(it,i);
-  const opts=document.querySelectorAll('#optList .opt');
-  opts.forEach((b,idx)=>{
-    b.onclick=null;
-    if(idx===it.answer)b.classList.add('correct');
-    else if(idx===i)b.classList.add('wrong');
-    else b.classList.add('disabled');
-  });
-  const ex=document.getElementById('explainBox');
-  ex.innerHTML='<div class="tip" style="margin-top:12px"><b style="color:'+(correct?'#389e0d':'#cf1322')+'">'+(correct?'✅ 回答正确':'❌ 回答错误')+'（正确答案：'+'ABCD'[it.answer]+'）</b><br>'+escapeHtml(it.explain||'')+'</div>'+
-    '<button class="btn-primary" style="margin-top:10px" onclick="nextQuestion()">'+(curIdx+1<curSession.length?'下一题 →':'查看结果')+'</button>';
-  curCount++;if(correct)curCorrect++;
+  curCount++;
+  if(correct)curCorrect++;
   curChapterStats[it.chapter]=curChapterStats[it.chapter]||{t:0,c:0};
   curChapterStats[it.chapter].t++;if(correct)curChapterStats[it.chapter].c++;
+  renderQuizQuestion();
+  // 如果是最后一题，显示查看结果按钮
+  if(curIdx+1>=curSession.length){
+    document.getElementById('quizFinishBar').classList.remove('hidden');
+  }
 }
-function nextQuestion(){curIdx++;renderCurrentQuestion();}
+function quizNext(){curIdx++;renderQuizQuestion();}
+function quizPrev(){curIdx--;renderQuizQuestion();}
+function finishQuiz(){
+  const body=document.getElementById('quizBody');
+  const rate=curCount?Math.round(curCorrect/curCount*100):0;
+  document.getElementById('quizProgressBar').style.width='100%';
+  document.getElementById('quizCount').textContent=curSession.length+' / '+curSession.length;
+  let chHtml='';
+  Object.keys(curChapterStats).forEach(ch=>{const s=curChapterStats[ch];const r=Math.round(s.c/s.t*100);chHtml+='<div class="bar-row" style="margin-bottom:6px"><span>'+escapeHtml(ch)+'</span><b>'+s.c+'/'+s.t+' ('+r+'%)</b></div><div class="progress" style="margin-bottom:8px"><i style="width:'+r+'%"></i></div>';});
+  body.innerHTML='<div class="quiz-card"><div class="quiz-result">'+
+    '<div class="qr-score '+(rate>=60?'ok':'err')+'" style="color:'+(rate>=60?'#389e0d':'#cf1322')+'">'+rate+'%</div>'+
+    '<div class="qr-sub">本组 '+curCount+' 题 · 正确 '+curCorrect+' 题 · 错误 '+(curCount-curCorrect)+' 题</div>'+
+    '<div class="qr-chapters">'+(chHtml||'')+'</div>'+
+    '<div class="qr-btns">'+
+    '<button class="btn-primary" onclick="startPractice()">再练一组</button>'+
+    '<button class="btn-ghost" onclick="exitQuiz();switchTab(\'wrong\')">看错题本</button>'+
+    '<button class="btn-ghost" onclick="exitQuiz();switchTab(\'practice\')">返回练习</button></div>'+
+    '</div></div>';
+  document.getElementById('quizFinishBar').classList.add('hidden');
+}
+function exitQuiz(){
+  document.getElementById('quizMode').classList.add('hidden');
+  document.body.style.overflow='';
+  renderPracticeHistory();
+}
 function recordOnePractice(it,userAns){
   const correct = userAns===it.answer;
   state.practice.push({id:rid(),ts:Date.now(),bankId:it.id,subjectId:it.subjectId,chapter:it.chapter,correct,userAns});
@@ -622,15 +804,6 @@ function recordOnePractice(it,userAns){
   if(!correct){state.wrong[it.id]=state.wrong[it.id]||{firstWrong:fmtDate(new Date()),mastered:false};}
   persist();
   renderOverview();renderSubjects();renderWrong();
-}
-function finishPractice(){
-  const box=document.getElementById('practiceArea');
-  const rate=curCount?Math.round(curCorrect/curCount*100):0;
-  let chHtml='';
-  Object.keys(curChapterStats).forEach(ch=>{const s=curChapterStats[ch];const r=Math.round(s.c/s.t*100);chHtml+='<div class="bar-row"><span>'+escapeHtml(ch)+'</span><b>'+s.c+'/'+s.t+' ('+r+'%)</b></div><div class="progress"><i style="width:'+r+'%"></i></div>';});
-  box.innerHTML='<div style="text-align:center"><div class="big-num '+(rate>=60?'ok':'err')+'">'+rate+'%</div><div class="stat-label">本组 '+curCount+' 题 · 正确 '+curCorrect+' 题</div>'+
-    '<div style="margin-top:14px;text-align:left">'+(chHtml||'')+'</div>'+
-    '<button class="btn-primary" style="margin-top:14px" onclick="startPractice()">再练一组</button> <button class="btn-ghost" onclick="switchTab(\'wrong\')">看错题本</button></div>';
 }
 
 /* ===================== 错题本 ===================== */
@@ -674,7 +847,7 @@ function switchTab(name){
   if(name==='overview')renderOverview();
   if(name==='subjects')renderSubjects();
   if(name==='resources')renderResources();
-  if(name==='practice'){fillPracticeSelectors();renderBankOverview();}
+  if(name==='practice'){fillPracticeSelectors();renderBankOverview();renderPracticeHistory();}
   if(name==='wrong')renderWrong();
   if(name==='affairs')renderAffairs();
 }
@@ -780,7 +953,7 @@ function applyRemote(remote,updatedAt,device){
   persist();
   syncMeta.lastAppliedAt=updatedAt; syncMeta.remoteUpdatedAt=updatedAt; save('fk_syncMeta',syncMeta);
   renderOverview();renderSubjects();renderResources();renderAffairs();
-  fillPracticeSelectors();renderBankOverview();renderWrong();
+  fillPracticeSelectors();renderBankOverview();renderWrong();renderPracticeHistory();
   renderSyncPill();
 }
 /* ---------- GitHub 仓库作为数据后端 ---------- */
@@ -881,7 +1054,7 @@ function toast(msg){
 /* ===================== 初始化 ===================== */
 document.getElementById('todayPill').textContent='今天：'+TODAY_KEY;
 renderOverview();renderSubjects();renderResources();renderAffairs();
-fillPracticeSelectors();renderBankOverview();
+fillPracticeSelectors();renderBankOverview();renderPracticeHistory();
 renderSyncPill();initSync();
 </script>
 </body>
