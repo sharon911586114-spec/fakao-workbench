@@ -188,6 +188,26 @@
   .res-kp-body.open{max-height:800px;padding:0 12px 10px 44px}
   .kp-title{font-weight:700;color:#1f2433;font-size:14px;line-height:1.35}
 
+
+  /* 今日目标 + 连续打卡 */
+  .goal-card{background:linear-gradient(135deg,#1677ff,#4096ff);color:#fff;border-radius:10px;padding:18px}
+  .goal-card .gc-num{font-size:32px;font-weight:700;line-height:1.1}
+  .goal-card .gc-sub{font-size:13px;opacity:.9;margin-top:4px}
+  .goal-bar{height:8px;background:rgba(255,255,255,.3);border-radius:6px;overflow:hidden;margin:10px 0 6px}
+  .goal-bar > i{display:block;height:100%;background:#fff;border-radius:6px;transition:width .4s}
+  .streak-flame{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:600}
+  .quick-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;font-size:15px;font-weight:600;border-radius:10px;border:none;cursor:pointer;transition:.15s;background:linear-gradient(135deg,#1677ff,#4096ff);color:#fff;box-shadow:0 2px 8px rgba(22,119,255,.3)}
+  .quick-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,119,255,.4)}
+  .kbd-hint{font-size:11px;color:var(--text-3);margin-top:8px;text-align:center;line-height:1.6}
+  .kbd{display:inline-block;padding:1px 6px;border:1px solid #d9d9d9;border-radius:4px;font-family:ui-monospace,monospace;font-size:11px;background:#fafafa;margin:0 1px}
+  /* 各科正确率看板 */
+  .acc-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed #f0f0f0}
+  .acc-row:last-child{border-bottom:none}
+  .acc-row .ar-name{flex:0 0 90px;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .acc-row .ar-bar{flex:1;height:8px;background:#f5f5f5;border-radius:6px;overflow:hidden}
+  .acc-row .ar-bar > i{display:block;height:100%;border-radius:6px;transition:width .4s}
+  .acc-row .ar-val{flex:0 0 72px;text-align:right;font-size:13px;font-weight:600}
+
 </style>
 </head>
 <body>
@@ -260,10 +280,23 @@
         </div>
         <div class="tip" id="overviewTip">💡 在「刷题练习」答一题，数据会实时汇总到这里。</div>
       </div>
-      <div class="card">
-        <h3>🎯 今日速览</h3>
-        <div id="todaySnapshot" class="muted">加载中…</div>
-        <button class="btn-primary" style="margin-top:12px;width:100%" onclick="switchTab('practice')">去刷题练习 →</button>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="goal-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="gc-num" id="goalNum">0/30</div>
+              <div class="gc-sub">今日刷题目标</div>
+            </div>
+            <div class="streak-flame" id="streakBadge">🔥 0天</div>
+          </div>
+          <div class="goal-bar"><i id="goalBar" style="width:0%"></i></div>
+          <div class="gc-sub" id="goalMsg">点下方按钮，开始今天的第一题</div>
+        </div>
+        <div style="padding:12px 18px">
+          <button class="quick-btn" onclick="quickPractice()">⚡ 快速刷10题</button>
+          <div class="kbd-hint">刷题中按 <span class="kbd">A</span><span class="kbd">B</span><span class="kbd">C</span><span class="kbd">D</span> 选答案 <span class="kbd">Enter</span> 下一题 <span class="kbd">Esc</span> 退出</div>
+          <button class="btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="switchTab('practice')">按科目/章节刷题 →</button>
+        </div>
       </div>
     </div>
 
@@ -350,6 +383,10 @@
       </div>
     </div>
 
+    <div class="card" style="margin-top:16px">
+      <h3>📊 各科累计正确率</h3>
+      <div id="accDashboard"><span class="muted">暂无练习数据，刷几题后这里会显示各科正确率。</span></div>
+    </div>
     <div class="card" style="margin-top:16px">
       <h3>🕐 最近练习记录</h3>
       <div id="practiceArea"><span class="muted">暂无练习记录，点上方「开始练习」开始刷题。</span></div>
@@ -824,12 +861,18 @@ function renderOverview(){
   document.getElementById('mWrong').textContent = wrongN;
   document.getElementById('mBank').textContent = state.bank.length;
   document.getElementById('mToday').textContent = todayQ;
-  const snap = document.getElementById('todaySnapshot');
-  snap.innerHTML = todayQ
-    ? '<div style="font-size:14px;font-weight:600">今日已刷 '+todayQ+' 题 ✅</div>'+
-      '<div class="bar-row" style="margin-top:6px"><span>题库总量</span><b>'+state.bank.length+' 题</b></div>'+
-      '<div class="bar-row"><span>未掌握错题</span><b>'+wrongN+' 题</b></div>'
-    : '<div class="muted">今天还没刷题。点下方按钮，开刷第一题 👇</div>';
+  // 今日目标 + 连续打卡
+  const goal=state.profile.dailyGoal||30;
+  const goalPct=Math.min(100,Math.round(todayQ/goal*100));
+  const gn=document.getElementById('goalNum'); if(gn)gn.textContent=todayQ+'/'+goal;
+  const gb=document.getElementById('goalBar'); if(gb)gb.style.width=goalPct+'%';
+  const sb=document.getElementById('streakBadge'); if(sb)sb.textContent='🔥 '+calcStreak()+'天';
+  const gm=document.getElementById('goalMsg');
+  if(gm){
+    if(todayQ>=goal)gm.textContent='🎉 今日目标已完成！继续刷就是超额加成';
+    else if(todayQ>0)gm.textContent='已刷 '+todayQ+' 题，再刷 '+(goal-todayQ)+' 题完成今日目标';
+    else gm.textContent='点下方按钮，开始今天的第一题 ⚡';
+  }
   const next = AFFAIR_NODES.find(n=>!n.done);
   const nb = document.getElementById('nextAffairBox');
   nb.innerHTML = next
@@ -1275,8 +1318,8 @@ function renderWrong(){
     const rec=[...state.practice].reverse().find(p=>p.bankId===id&&!p.correct);
     return '<div class="wrong-item"><div style="font-weight:600">'+escapeHtml(b.q)+'</div>'+
       '<div class="muted" style="margin:4px 0">'+subjName(b.subjectId)+' · <span class="chapter-pill">'+escapeHtml(b.chapter||'')+'</span></div>'+
-      '<div class="bar-row"><span>你的答案</span><b style="color:#cf1322">'+(rec?('ABCD'[rec.userAns]):'—')+'</b></div>'+
-      '<div class="bar-row"><span>正确答案</span><b style="color:#389e0d">'+(b.answer>=0&&b.answer<4?'ABCD'[b.answer]:'—')+'</b></div>'+
+      '<div class="bar-row"><span>你的答案</span><b style="color:#cf1322">'+(rec?formatAnswer(b,rec.userAns):'—')+'</b></div>'+
+      '<div class="bar-row"><span>正确答案</span><b style="color:#389e0d">'+formatAnswer(b,b.answer)+'</b></div>'+
       '<div class="tip" style="margin:6px 0">'+escapeHtml(b.explain||'')+'</div>'+
       '<button class="btn-sm btn-ghost" onclick="masterWrong(\''+id+'\')">标记为已掌握</button></div>';
   }).join('');
@@ -1293,6 +1336,76 @@ function exportWrong(){
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 
+/* ===================== 连续打卡天数 ===================== */
+function calcStreak(){
+  const days=new Set();
+  state.practice.forEach(p=>days.add(fmtDate(new Date(p.ts))));
+  let streak=0; const d=new Date();
+  while(days.has(fmtDate(d))){ streak++; d.setDate(d.getDate()-1); }
+  return streak;
+}
+
+/* ===================== 快速刷题（一键10题随机） ===================== */
+function quickPractice(){
+  const ps=document.getElementById('pfSubject'); if(ps)ps.value='all';
+  const pc=document.getElementById('pfChapter'); if(pc)pc.value='';
+  const pt=document.getElementById('pfType'); if(pt)pt.value='all';
+  const pn=document.getElementById('pfNum'); if(pn)pn.value=10;
+  startPractice();
+}
+
+/* ===================== 各科累计正确率看板 ===================== */
+function renderAccuracyDashboard(){
+  const box=document.getElementById('accDashboard'); if(!box)return;
+  const bySub={};
+  state.practice.forEach(p=>{
+    const k=p.subjectId; if(!bySub[k])bySub[k]={t:0,c:0};
+    bySub[k].t++; if(p.correct)bySub[k].c++;
+  });
+  let html='';
+  state.subjects.forEach(s=>{
+    const d=bySub[s.id]; if(!d||!d.t)return;
+    const rate=Math.round(d.c/d.t*100);
+    const color=rate>=70?'#389e0d':rate>=50?'#d48806':'#cf1322';
+    html+='<div class="acc-row"><span class="ar-name" title="'+escapeHtml(s.name)+'">'+escapeHtml(s.name)+'</span>'+
+      '<div class="ar-bar"><i style="width:'+rate+'%;background:'+color+'"></i></div>'+
+      '<span class="ar-val" style="color:'+color+'">'+d.c+'/'+d.t+' ('+rate+'%)</span></div>';
+  });
+  if(!html)html='<span class="muted">暂无练习数据，刷几题后这里会显示各科正确率。</span>';
+  box.innerHTML=html;
+}
+
+/* ===================== 键盘快捷键（题海战术加速） ===================== */
+document.addEventListener('keydown',function(e){
+  const quiz=document.getElementById('quizMode');
+  if(!quiz||quiz.classList.contains('hidden'))return;
+  if(curIdx>=curSession.length)return;
+  const it=curSession[curIdx]; if(!it)return;
+  const qt=getQType(it);
+  const answered=curAnswered[curIdx];
+  const key=e.key.toLowerCase();
+  const keyMap={'a':0,'b':1,'c':2,'d':3,'1':0,'2':1,'3':2,'4':3};
+  if(key in keyMap){
+    e.preventDefault();
+    const i=keyMap[key];
+    if(i>=it.opts.length)return;
+    if(answered!==null)return;
+    if(qt==='single'||qt==='tf'){answerQuiz(i);}
+    else{toggleQuizOption(i);}
+  }else if(e.key==='Enter'){
+    e.preventDefault();
+    if(answered!==null){
+      if(curIdx+1<curSession.length)quizNext();
+      else finishQuiz();
+    }else if(qt==='multiple'||qt==='indefinite'){
+      confirmMultiAnswer();
+    }
+  }else if(e.key==='Escape'){
+    e.preventDefault();
+    exitQuiz();
+  }
+});
+
 /* ===================== Tab 切换 ===================== */
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
@@ -1301,7 +1414,7 @@ function switchTab(name){
   if(name==='overview')renderOverview();
   if(name==='subjects')renderSubjects();
   if(name==='resources')renderResources();
-  if(name==='practice'){fillPracticeSelectors();renderBankOverview();renderPracticeHistory();}
+  if(name==='practice'){fillPracticeSelectors();renderBankOverview();renderPracticeHistory();renderAccuracyDashboard();}
   if(name==='wrong')renderWrong();
   if(name==='affairs')renderAffairs();
 }
