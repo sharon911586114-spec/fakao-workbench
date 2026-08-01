@@ -166,15 +166,27 @@
   }
 
   /* 资料库：按科目分组的知识点信息卡片 */
-  .res-group{margin-bottom:18px}
-  .res-group-head{display:flex;align-items:center;gap:10px;margin:4px 0 10px}
+  /* 资料库：可折叠知识点列表，逐条标记已读，手机端友好 */
+  .res-group{margin-bottom:20px}
+  .res-group-head{display:flex;align-items:center;gap:10px;margin:4px 0 10px;flex-wrap:wrap}
   .res-group-tag{display:inline-block;background:#eef3ff;color:#2b5cff;font-weight:700;border-radius:8px;padding:3px 12px;font-size:14px;white-space:nowrap}
-  .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:12px}
-  .res-card{background:#fff;border:1px solid #eceef2;border-radius:12px;padding:12px 14px;cursor:pointer;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.03);min-height:74px;display:flex;flex-direction:column;gap:4px}
-  .res-card:hover{border-color:#2b5cff;box-shadow:0 4px 14px rgba(43,92,255,.12);transform:translateY(-1px)}
-  .kp-idx{font-size:11px;color:#9aa3b2;font-weight:600;letter-spacing:.5px}
+  .res-kp-list{display:flex;flex-direction:column;gap:0}
+  .res-kp-item{border:1px solid #eceef2;border-bottom:none;background:#fff;transition:.12s}
+  .res-kp-item:first-child{border-radius:10px 10px 0 0}
+  .res-kp-item:last-child{border-bottom:1px solid #eceef2;border-radius:0 0 10px 10px}
+  .res-kp-item:only-child{border-radius:10px;border-bottom:1px solid #eceef2}
+  .res-kp-item:hover{background:#fafbfe}
+  .res-kp-item.read{opacity:.7;background:#f9fafb}
+  .res-kp-item.read .kp-title{color:#9aa3b2}
+  .res-kp-header{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-height:44px}
+  .res-kp-cb{flex-shrink:0;width:22px;height:22px;border:2px solid #d4d8e0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:transparent;transition:.15s;margin-top:1px}
+  .res-kp-cb.checked{background:#2b5cff;border-color:#2b5cff;color:#fff}
+  .res-kp-num{flex-shrink:0;font-size:11px;color:#9aa3b2;font-weight:600;min-width:34px;padding-top:3px}
+  .res-kp-chev{flex-shrink:0;color:#bfc5d0;font-size:14px;transition:.2s;padding-top:4px}
+  .res-kp-chev.open{transform:rotate(180deg)}
+  .res-kp-body{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:13px;color:#6b7280;line-height:1.65;padding:0 12px 0 44px}
+  .res-kp-body.open{max-height:800px;padding:0 12px 10px 44px}
   .kp-title{font-weight:700;color:#1f2433;font-size:14px;line-height:1.35}
-  .kp-body{font-size:12.5px;color:#6b7280;line-height:1.55;max-height:62px;overflow:hidden}
 
 </style>
 </head>
@@ -424,6 +436,11 @@ const DEFAULT_RESOURCES = [
   {subjectId:'sjz',subjectId:'sjz',type:'考点',name:'【考点笔记】商经法 · 8大高频考点详解（新公司法2024）',content:'【商经法·高频考点笔记】（以2024-07-01施行的新《公司法》为准）\n1. 注册资本认缴：有限责任公司全体股东认缴出资额应自公司成立之日起5年内缴足；存量公司超5年的应在过渡期内调整。\n2. 股东出资瑕疵：未出资/抽逃出资的，对公司补足、对其他足额股东违约、对债权人补充赔偿；抽逃（验资后无正当理由转出等）；董事高管未尽催缴义务致损负赔偿责任。\n3. 公司决议效力：不成立（未开会/未表决/比例不达标）；可撤销（召集程序、表决方式违法违章或内容违反章程，股东60日内诉请撤销）；无效（内容违反法律行政法规）。\n4. 股东知情权：可查阅复制章程、名册、会议记录、财务报告；会计账簿可查阅（不可复制），有不正当目的可拒绝；新法允许查阅原始凭证。\n5. 董监高义务：忠实（不侵占、不违规借贷担保、不自我交易、不篡夺商业机会、不同业竞争）与勤勉；违反致损赔偿，关联交易须决议并回避。\n6. 法人人格否认：股东滥用法人独立地位和有限责任逃避债务严重损害债权人的，连带责任（揭开面纱）；新法增加横向否认（受控公司间相互连带）。\n7. 破产清偿：破产费用、共益债务优先；顺序——职工债权→社保及欠税→普通债权；别除权（有财产担保债权就担保物优先受偿，不依上述顺序）。\n8. 劳动合同：协商解除、劳动者单方（提前30日/试用3日）、单位单方（过失性即时、无过失性预告）；经济补偿N（每满1年1月，6月以上不满1年按1年，不满6月半月）；违法解除赔偿金2N。',done:false},
   {subjectId:'ll',type:'考点',name:'【考点笔记】理论法 · 7大高频考点详解',content:'【理论法·高频考点笔记】\n1. 法律规则与原则：规则=假定条件＋行为模式＋法律后果，具体可操作；原则抽象具衡平功能（诚信、罪刑法定等）；适用（穷尽规则方用原则，规则冲突用原则衡量，原则可直接裁判但须充分论证）。\n2. 法律关系：主体＋客体＋内容（权利义务）；分类（平权型民事 vs 隶属型行政，绝对物权 vs 相对债权）；法律事实（事件/行为）引起产生变更消灭。\n3. 宪法·国家机构：全国人大（修宪、基本法律、选举国家主席/军委主席）；国务院（最高行政机关，制定行政法规）；监察委（独立监察权）；法院（审判，上下级监督）、检察院（法律监督，上下级领导）。\n4. 宪法·公民基本权利：平等权、政治权利和自由、宗教信仰自由、人身自由（人格尊严、住宅不受侵犯）、监督权、社会经济文化权利；限制须法律保留且符合比例。\n5. 中国法律史·唐律：《唐律疏议》中华法系代表作，"德礼为本、刑罚为用"；十恶（谋反、谋大逆、谋叛、恶逆、不道、大不敬、不孝、不睦、不义、内乱）；五刑（笞杖徒流死）；老幼废疾减免、同居相隐。\n6. 习近平法治思想：核心要义"十一个坚持"（坚持党领导、以人民为中心、中国特色社会主义法治道路等）；是主观论述题核心素材。\n7. 司法制度与职业道德：法官/检察官（忠诚公正清廉文明，不得私自会见、不得枉法裁判）；律师（忠诚委托人、勤勉保密、利益冲突回避、不得违规收费）；回避（有利害关系自行回避，当事人可申请）。',done:false},
   {subjectId:'sg',type:'考点',name:'【考点笔记】三国法 · 5大高频考点详解',content:'【三国法·高频考点笔记】\n1. 冲突规范结构：冲突规范=范围（调整的民事关系）＋系属（指向准据法的规则）；系属公式（属人法、物之所在地法、行为地法、法院地法、旗国法）；连结点（国籍、住所、行为地、物之所在地）。\n2. 涉外民事关系法律适用：权利能力/行为能力（经常居所地法）；物权（物之所在地法）；合同（意思自治，无选择最密切联系地法）；侵权（侵权行为地法，共同经常居所地优先）；诉讼离婚（法院地法）。\n3. CISG：适用营业地在不同缔约国的货物买卖；不适用（消费品、拍卖、股票证券、船舶飞机、电力）；风险在货交第一承运人时转移；中国已加入，按营业地标准。\n4. 国际贸易术语（Incoterms）：FOB（装运港船上交货，风险在装运港船上转移，买方负责运费保险）；CIF（卖方订舱投保，风险仍在装运港船上转移，费用与风险分离）；CFR（类似CIF不含保险）；2020版分两类（任何运输方式/仅水运）。\n5. 国际公法·外交豁免：外交代表人身/寓所/财产/文书不可侵犯，刑事管辖绝对豁免，民事行政豁免（例外：私有不动产、继承、职务外商业活动）；属地管辖（领土内一切除豁免者）；保护性管辖（外国人在外国危害本国重大利益）。',done:false},
+,
+// 觉晓/竹马/众合 备考精华（公开渠道摘录，无需登录）
+  {subjectId:'x',type:'备考',name:'【备考精华】竹马模考·刑法高频错题Top10精华',content:'【竹马刑法高频错题精华】\n1. 错误率最高考点：共同犯罪中事后产生目的二的情形（如先非法拘禁后勒索第三人→绑架罪）。\n2. 对象错误vs打击错误：判断重点在实害对象及结果的故意/过失，而非预想对象是否「在场」。\n3. 同种数罪：量刑情节不一致时应数罪并罚、各算各账，否则禁止重复评价。\n4. 垫资型受贿：垫资额即受贿额，炒股盈利为犯罪所得收益。\n5. 职务发明专利申请权归单位、非发明人。\n6. 信用卡诈骗vs盗窃：盗窃信用卡并使用→定盗窃罪（整体评价）。',done:false},
+  {subjectId:'m',type:'备考',name:'【备考精华】孟献贵·2026民法每日一题精选（5大易错类型）',content:'【孟献贵民法每日一题易错要点】\n1. 情势变更vs不可抗力：情势变更合同可变更/解除（如房产调控政策导致无购房资格）；不可抗力可免责。\n2. 包销合同违约：包销商不取得所有权，开发商自行销售违约但不构成无权处分。\n3. 好意同乘减责：无偿搭车→一般过失可减责；故意/重大过失不免责（民法典1217条）。\n4. 违约金过高：超过损失30%可请求法院适当减少（585条）。\n5. 定金上限：不超过主合同标的额20%，超额部分不产生定金效力（586条）。',done:false},
+  {subjectId:'x',type:'备考',name:'【备考精华】觉晓法考·2026微博每日一题精华（犯罪停止形态专题）',content:'【觉晓刑法·每日一题精华】\n1. 抢劫熟人中止：着手实行后因认出熟人而放弃→实行阶段中止（非意志外、自动放弃）。\n2. 毒药杀夫中止：准备工具尚未着手→预备阶段中止；预备中止=自动放弃+未进入实行阶段。\n3. 毒蛇杀人+送医+被害人跳车：积极有效中止行为+被害人自陷风险中断因果关系→中止。\n4. 记住弗兰克公式：「能达目的而不欲」为中止；「欲达目的而不能」为未遂。\n5. 保险诈骗+警方设套理赔：保险公司已知晓真相、非基于认识错误给付→诈骗未遂。',done:false},
 ];
 
 const AFFAIR_NODES = [
@@ -690,6 +707,54 @@ const DEFAULT_BANK = [
   {id:'k206',subjectId:'sg',chapter:'国际私法·管辖豁免',type:'single',q:'乙国驻华大使馆与中国人金某在北京签图书翻译合同，使馆未付报酬，金某起诉至中国法院。该使馆哪一行为表明其接受中国法院管辖？',opts:['该大使作为证人出庭说明乙国法律','双方在合同中约定适用中国法律','该大使出庭主张管辖豁免','就实体问题向金某提起反诉'],answer:3,explain:'外交代表享刑事管辖绝对豁免及民事行政豁免（例外有限）；但其主动就实体问题反诉，视为接受管辖（放弃豁免）。A、B、C均不视为接受管辖。',src:'众合/真题'},
   {id:'k207',subjectId:'sg',chapter:'国际贸易术语·FOB',type:'multiple',q:'关于国际贸易术语FOB，下列哪些正确？',opts:['卖方在装运港将货物装上船即完成交货','风险在装运港货物装上船时转移给买方','卖方负责订立运输合同并支付运费','买方负责办理保险'],answer:[0,1,3],explain:'FOB（装运港船上交货）：卖方装船即交货，风险在装运港船上转移（A、B对）；运费与保险均由买方负责（C错，D对）。',src:'众合/真题'},
   {id:'k208',subjectId:'sg',chapter:'国际公法·管辖权',type:'indefinite',q:'关于国家管辖权，下列哪些正确？',opts:['属地管辖是国家对其领土内一切人、物、事（除豁免者）的管辖','属人管辖是基于国籍的管辖','保护性管辖是对外国人在外国危害本国重大利益犯罪的管辖','外交代表在驻在国享有刑事管辖绝对豁免'],answer:[0,1,2,3],explain:'属地（领土内管辖，A对）、属人（国籍，B对）、保护性（外国人在外国犯危害本国重罪，C对）、外交豁免（刑事绝对豁免，D对）。全部正确。',src:'众合/真题'},
+,
+{id:'k209',subjectId:'x',chapter:'罪数·竞合',type:'multiple',q:'罪犯甲成功越狱，在逃亡期间抢劫一家小卖部，被老板乙制服。乙审问得知甲是逃犯后，向甲的父亲丙打电话勒索50万元，否则将甲移送警方。丙照办，乙将甲交还丙。下列说法正确的有？（竹马模考·错误率93.62%）',opts:['乙制服甲的行为成立正当防卫','乙向丙勒索财物触犯敲诈勒索罪','乙向丙勒索财物触犯绑架罪','乙触犯窝藏罪'],answer:[0,1,2,3],explain:'甲抢劫乙，乙反击制服甲属正当防卫（A对）。乙以「移送警方」勒索丙，触犯敲诈勒索（B对）。乙在非法拘禁期间产生目的二（勒索第三人），实施勒索构成绑架罪（C对）。明知甲是逃犯而交还其父、帮助继续逃匿，属窝藏罪（D对）。绑架罪与窝藏罪数罪并罚。',src:'竹马/知乎'},
+{id:'k210',subjectId:'x',chapter:'刑法总论·认识错误',type:'multiple',q:'王某猎捕几只鸟，不知该类鸟已被纳入珍贵野生保护动物，周围群众也不知道。下列说法正确的有？（竹马模考·错误率87.39%）',opts:['王某对行政法产生认识错误，属违法性认识错误','王某对鸟的性质产生认识错误，属事实认识错误','王某应按照违法性认识错误处理，考察有无违法性认识可能性','王某缺乏危害珍贵濒危野生动物罪的故意，不构成该罪'],answer:[1,3],explain:'行为对象（珍贵动物）是构成要件事实；王某对行政法认识错误导致对行为对象认识错误→属事实认识错误（B对）而非违法性认识错误（A错）；事实认识错误阻却故意，不构成该罪（D对）；不能按违法性认识错误处理（C错）。',src:'竹马/知乎'},
+{id:'k211',subjectId:'x',chapter:'刑法总论·自首',type:'single',q:'甲2019年犯抢劫罪，次日投案自首。羁押期间供述2018年还犯抢劫罪（查证属实）。警方又发现甲2017年犯抢劫罪，证据确实充分但甲拒不承认。下列说法正确的是？（竹马模考·错误率84.55%）',opts:['甲对2018年抢劫罪构成准自首','三罪按一个抢劫罪论处，整体不认定自首','三罪单独处理，数罪并罚；2019年认定自首，2018和2017年不认定','三罪单独处理，数罪并罚，并适用「多次抢劫」法定刑升格'],answer:2,explain:'准自首须供述不同种罪行，2018年抢劫系同种罪，不构成准自首（A错）。量刑情节不一致时应各算各账、数罪并罚（C对，B错）。数罪并罚后不能再次以「多次抢劫」升格处罚（禁止重复评价原则，D错）。',src:'竹马/知乎'},
+{id:'k212',subjectId:'x',chapter:'贪污贿赂·受贿罪',type:'indefinite',q:'老板乙求官员甲办事，甲委托乙炒股。下列说法正确的有？（竹马模考·错误率71.90%）',opts:['甲不出资、乙垫资10万炒股赚5万：甲构成受贿罪，犯罪所得及收益共15万','甲不出资、乙垫资10万炒股赔5万：甲受贿所得10万','甲出资10万、乙炒股赚5万：甲构成受贿罪，所得5万','甲出资10万炒股赚5万但乙多给5万且甲知情：甲受贿所得5万'],answer:[0,1,3],explain:'垫资=变相行受贿，垫资额即受贿所得（A对，B对）。甲实际出资炒股属正常投资、不构成受贿（C错）。乙多给的5万属行贿，甲知情而收受构成受贿（D对）。',src:'竹马/知乎'},
+{id:'k213',subjectId:'x',chapter:'妨害社会管理秩序',type:'indefinite',q:'关于新冠疫情防控方面的犯罪，下列说法正确的有？（两高2020意见）',opts:['已确诊新冠病人拒绝隔离治疗并进入公共场所，危害公共安全的 → 以危险方法危害公共安全罪','新冠疑似病人拒绝隔离治疗并进入公共场所、造成病毒传播的 → 以危险方法危害公共安全罪','新冠疑似病人拒绝执行卫生防疫机构其他防控措施、引起病毒传播的 → 妨害传染病防治罪','疫情期间对医务人员撕扯防护装备、吐口水致其感染的 → 妨害公务罪'],answer:[0,1,2],explain:'ABC均系2020两高两部《关于依法惩治妨害新冠肺炎疫情防控违法犯罪的意见》明确；D错：医务人员非国家机关工作人员、医疗活动非公务行为；此种情形应认定为故意伤害罪。',src:'竹马/知乎'},
+{id:'k214',subjectId:'x',chapter:'财产犯罪·竞合',type:'multiple',q:'王某有一套住房。李某伪造王某身份证和房产证，谎称自己所有出售给张某（张某不知情）。房产交易中心未验出伪造证件，办理了过户手续。下列说法正确的有？',opts:['李某构成伪造身份证件罪和伪造国家机关证件罪','李某对张某构成诈骗罪既遂','李某对王某构成盗窃罪既遂','李某所犯各罪应数罪并罚'],answer:[0,1,2],explain:'李某伪造身份证和房产证（A对）。张某以市价买到权利有瑕疵财物→有财产损失→诈骗既遂（B对）。王某不知情下产权被转移→盗窃既遂（盗窃房屋产权，C对）。手段行为与目的行为属牵连犯，择一重；一行为触犯诈骗与盗窃属想象竞合（D错）。',src:'竹马/知乎'},
+{id:'k215',subjectId:'x',chapter:'刑法总论·认识错误',type:'multiple',q:'甲乙共同入户抢劫，约定若主人追捕则开枪。抢得财物后逃跑。甲见身后有人追（以为是主人丙），开枪致重伤——实际是乙在逃跑；真正的主人在现场但甲未看到。下列说法正确的有？（竹马模考·错误率63.50%）',opts:['甲想杀的对象（丙）在现场，甲构成打击错误','甲对乙构成故意杀人罪未遂','乙对甲的故意杀人罪未遂应负责','甲乙对丙构成故意杀人罪犯罪预备'],answer:[1,3],explain:'甲对实害对象（乙）持故意心理而非过失→非打击错误（A错）。判断重点是实害对象身份错误→对象错误，对乙构成故意杀人未遂（B对）。实害对象即乙自己→乙不负责（C错）。甲乙对预定目标丙仅构成故意杀人预备（D对）。想象竞合择一重定故意杀人未遂。',src:'竹马/知乎'},
+{id:'k216',subjectId:'x',chapter:'破坏金融管理秩序·洗钱',type:'indefinite',q:'甲盗窃他人银行卡后在银行柜台冒用，欺骗柜员将卡内50万转入自己账户。次日甲到另一银行告知柜员乙真相，指示乙汇往境外。下列说法正确的有？',opts:['甲构成盗窃罪','乙仅构成掩饰隐瞒犯罪所得罪','甲实施了信用卡诈骗罪行为，乙构成洗钱罪','甲的行为属冒用他人信用卡定信用卡诈骗罪'],answer:[0,2],explain:'甲盗窃银行卡后在柜台冒用，属盗窃信用卡并使用→定盗窃罪（A对）；但客观实施冒用信用卡行为→乙据此协助转移资金构成洗钱罪（C对）；甲不另行定信用卡诈骗（基于盗窃后使用定盗窃的整体评价）；乙已构成洗钱罪而非仅掩饰隐瞒（B片面）。',src:'竹马/知乎'},
+// 刑法 — 觉晓法考微博 每日一题（2026年5月公布）,
+{id:'k217',subjectId:'x',chapter:'犯罪停止形态',type:'single',q:'甲携带凶器拦路抢劫，黑夜中遇乙便实施暴力。乙发现是熟人甲便喊其名字，甲一听住手并向乙道歉说「对不起认错人了」。甲的行为属于？（觉晓每日一题#55）',opts:['实行终了的犯罪未遂','预备阶段的犯罪中止','未实行终了的犯罪未遂','实行阶段的犯罪中止'],answer:3,explain:'甲已着手实行抢劫（实施暴力），属实行阶段；因乙喊名认出熟人而自动放弃、非意志外因素，属实行阶段的犯罪中止。弗兰克公式：能达目的而不欲为中止。',src:'觉晓/微博'},
+{id:'k218',subjectId:'x',chapter:'犯罪停止形态',type:'single',q:'甲与女子有染，妻乙生怨。某日乙将毒药拌入菜中意图杀甲。因久等未归且惧怕法律制裁，乙遂打消恶念将菜倒掉。乙的行为属于？（觉晓每日一题#59）',opts:['犯罪预备','犯罪预备阶段的犯罪中止','犯罪未遂','犯罪实行阶段的犯罪中止'],answer:1,explain:'乙尚未着手实行杀人行为（尚未端菜给甲吃），处于预备阶段；因惧怕法律制裁而自动放弃→属预备阶段的犯罪中止。着手认定：对法益造成现实紧迫危险性。',src:'觉晓/微博'},
+{id:'k219',subjectId:'x',chapter:'犯罪停止形态',type:'single',q:'甲以杀人故意放毒蛇咬乙，后见乙痛苦不堪心生悔意，开车送乙去医院。途中等红灯时乙声称自己一直想死，突然跳车逃走，三小时后死亡。后查明只要当时送医院就不会死亡。关于本案下列哪一正确？（觉晓每日一题#60）',opts:['甲不对乙的死亡负责，成立犯罪中止','甲成立犯罪未遂','甲成立故意杀人罪既遂','甲成立过失致人死亡罪'],answer:0,explain:'甲实施了中止行为（积极送医）；乙的死亡系其自己跳车所致，中断了因果关系。甲已做到「有效防止犯罪结果发生」→成立犯罪中止，不对死亡负责。',src:'觉晓/微博'},
+// 刑法 — 竹马头条 高频错题,
+{id:'k220',subjectId:'x',chapter:'财产犯罪·侵占',type:'multiple',q:'乘客把手���遗忘在出租车上。司机看到了但不提醒，待乘客走远后开车离开，试多次密码解锁手机，将乘客银行卡资金转到乘客支付宝，再利用乘客支付宝信息资料将资金转到自己账户。司机完成操作后乘客来电，司机谎称自己为路人并挂断。下列说法正确的有？（竹马高频错题）',opts:['乘客刚下车时司机不提醒对手机构成不作为盗窃罪','乘客走远后手机转移为司机占有，司机开车驶离构成侵占罪','司机欺骗乘客自己是路人，构成诈骗罪','司机转移支付宝资金的行为，构成信用卡诈骗罪'],answer:[1,2],explain:'A错：乘客刚下车手机未脱离占有，司机「不提醒」不构成盗窃（未将手机转为自己占有）。B对：乘客走远→失去占有→手机自动转司机占有（车厢空间管理人），开车驶离表明据为己有→侵占罪。C对：司机有返还义务，欺骗谎称路人→骗免返还义务，构成诈骗（诈骗财产性利益）。D错：支付宝信息不属于银行卡信息，司机划转无欺骗处分环节→多数说定盗窃罪而非信用卡诈骗。',src:'竹马/头条'},
+// 民法 — 孟献贵每日一题 / 众合,
+{id:'k221',subjectId:'m',chapter:'合同·解除',type:'indefinite',q:'甲公司与乙公司签订商品房包销合同。甲公司将房屋卖给丙并签合同，丙支付首付20万。后国家出台房地产调控政策，丙不具备购房资格。下列说法正确的是？（孟献贵民法每日一题207）',opts:['甲公司将房屋卖丙的行为是无权处分','甲公司将房屋卖丙的行为违反包销合同，应向乙公司承担违约责任','因情势变更，甲或丙均可请求解除房屋买卖合同','房屋买卖合同解除后，甲公司只需返还丙20万元本金'],answer:[1,2],explain:'甲公司作为所有权人出卖房屋→有权处分（A错）。违反包销合同≡违约（B对）。合同成立后出现不可预见重大变化→情势变更，双方可请求解除（C对）。解除后返还不当得利=本金+利息（D错）。',src:'众合/孟献贵'},
+{id:'k222',subjectId:'m',chapter:'合同·违约金',type:'single',q:'黄某与A公司约定每日千分之五（年利率约182.5%）的违约金，远高于同期银行贷款利率30倍。黄某可向法院请求？（孟献贵民法案例）',opts:['宣告合同无效','适当减少违约金','撤销合同','确认违约金条款无效'],answer:1,explain:'民法典585条：约定的违约金过分高于造成的损失（超过损失30%），当事人可请求人民法院或仲裁机构予以适当减少。',src:'众合/孟献贵'},
+{id:'k223',subjectId:'m',chapter:'合同·买卖不破租赁',type:'tf',q:'租赁物在承租人按照租赁合同占有期限内发生所有权变动的，不影响租赁合同的效力。此即「买卖不破租赁」原则。',opts:['正确','错误'],answer:0,explain:'正确。民法典725条：租赁物在承租人按照租赁合同占有期限内发生所有权变动的，不影响租赁合同的效力。「买卖不破租赁」保护承租人居住利益。',src:'众合/孟献贵'},
+{id:'k224',subjectId:'m',chapter:'侵权责任·好意同乘',type:'single',q:'甲驾驶机动车搭载同事乙上班，途中因走神追尾致乙受伤。乙的损失应由？（民法每日一题）',opts:['甲全部承担','甲适当承担','乙自行承担','甲赔偿但可减轻赔偿责任'],answer:3,explain:'民法典1217条：非营运机动车发生交通事故造成无偿搭乘人损害，属该机动车一方责任的应当减轻其赔偿责任（好意同乘减责），但使用人有故意或重大过失的除外。甲走神属一般过失，可减轻但不可免除。',src:'众合/孟献贵'},
+{id:'k225',subjectId:'m',chapter:'总则·宣告死亡',type:'multiple',q:'甲被宣告死亡。关于宣告死亡的法律后果，下列说法正确的有？（孟献贵民法每日一题032）',opts:['甲被宣告死亡后其合法财产由继承人依法继承','甲妻乙如未再婚且未书面声明不愿恢复的，撤销宣告后婚姻自行恢复','法院判决作出之日视为甲的死亡日期','铁路公司（甲失踪所在地）须对甲的死亡承担赔偿责任'],answer:[0,1,2],explain:'A对：宣告死亡→继承开始。B对：撤销宣告后婚姻自行恢复，但再婚或书面声明除外。C对：一般情况下宣告死亡的判决作出日为死亡日期（非意外事件）。D错：铁路公司无过错则无须赔偿。',src:'众合/孟献贵'},
+{id:'k226',subjectId:'m',chapter:'合同·定金',type:'tf',q:'当事人约定的定金数额超过主合同标的额20%的部分不产生定金效力。实际交付的定金数额多于或少于约定数额的，视为变更约定的定金数额。',opts:['正确','错误'],answer:0,explain:'正确。民法典586条：定金合同自实际交付定金时成立；定金数额不得超过主合同标的额20%；超过部分不产生定金效力。实际交付与约定不一致，视为变更。',src:'众合/孟献贵'},
+// 刑诉,
+{id:'k227',subjectId:'xs',chapter:'强制措施·逮捕',type:'single',q:'关于逮捕的条件，下列哪一说法正确？',opts:['有证据证明有犯罪事实即可逮捕','可能判处徒刑以上刑罚且有羁押必要性的方可逮捕','所有嫌疑人一经拘留均应提请逮捕','逮捕由公安机关自行决定'],answer:1,explain:'刑诉法81条：对有证据证明有犯罪事实、可能判处徒刑以上刑罚，取保候审不足以防止社会危险性的→逮捕（B对）。须同时满足证据要件+徒刑要件+必要性。A缺后两要件。C错误拘留期限可至30日。D须经检察院批准或法院决定。',src:'觉晓/竹马'},
+{id:'k228',subjectId:'xs',chapter:'辩护·法援',type:'multiple',q:'关于辩护和法援，下列哪些选项正确？',opts:['犯罪嫌疑人自首次讯问或采取强制措施之日起有权委托辩护人','可能判处无期徒刑或死刑的应通知法援指派律师','侦查阶段可委托非律师担任辩护人','认罪认罚案件中有值班律师提供法律帮助'],answer:[0,1,3],explain:'A对：刑诉法34条。B对：刑诉法35条，盲聋哑、未成年、可能无期死刑、尚未完全丧失辨认能力精神病人→应当法援。C错：侦查阶段仅可委托律师。D对：认罪认罚案件应当有值班律师。',src:'觉晓/竹马'},
+{id:'k229',subjectId:'xs',chapter:'侦查·讯问',type:'tf',q:'侦查阶段讯问犯罪嫌疑人时，如果嫌疑人提出要见律师的，侦查人员可以告知律师正在休假为由予以拒绝。',opts:['正确','错误'],answer:1,explain:'错误。刑事诉讼法规定犯罪嫌疑人自首次讯问或采取强制措施之日起有权委托辩护人；讯问时应告知其有权委托辩护人，不得以任何理由阻碍其行使辩护权。',src:'觉晓/竹马'},
+// 民诉,
+{id:'k230',subjectId:'ms',chapter:'管辖·地域',type:'single',q:'侵权诉讼的地域管辖不包括下列哪一法院？',opts:['侵权行为地法院','侵权结果发生地法院','被告住所地法院','原告住所地法院（非特殊情形）'],answer:3,explain:'民诉法29条：侵权诉讼由侵权行为地（含行为和结果地）或被告住所地管辖。原告住所地仅在法律特别规定时才有管辖权（如对被监禁人提起的诉讼等）。',src:'觉晓/竹马'},
+{id:'k231',subjectId:'ms',chapter:'当事人·第三人',type:'indefinite',q:'关于民事诉讼第三人制度，下列哪些说法正确？',opts:['有独立请求权第三人以起诉方式参加诉讼，以本诉的原被告为共同被告','无独立请求权第三人可以申请参加诉讼或由法院通知参加','有独立请求权第三人有权撤诉','无独立请求权第三人被判决承担责任的，有权提起上诉'],answer:[0,1,2,3],explain:'A对：有独三以原被告为共同被告提起独立诉讼。B对：无独三可申请参加或法院通知参加。C对：有独三有独立的当事人地位可撤诉。D对：无独三被判决担责则取得当事人地位可上诉。全部正确。',src:'觉晓/竹马'},
+{id:'k232',subjectId:'ms',chapter:'执行',type:'tf',q:'执行过程中当事人可以达成执行和解协议。一方不履行和解协议的，对方只能另行起诉，不能恢复原生效法律文书的执行。',opts:['正确','错误'],answer:1,explain:'错误。民诉法230条：不履行执行和解协议→可申请恢复原生效法律文书的执行，也可就和解协议另行起诉。恢复执行与另行起诉择一行使。',src:'觉晓/竹马'},
+// 行政法,
+{id:'k233',subjectId:'xz',chapter:'行政处罚·听证',type:'multiple',q:'关于行政处罚的听证程序，下列哪些选项正确？',opts:['较大数额罚款可申请听证','吊销许可证可申请听证','降低资质等级可申请听证','行政拘留可申请听证'],answer:[0,1,2],explain:'行政处罚法63条：较大数额罚款、吊销证照、降低资质等级、责令停产停业、责令关闭等可申请听证。但行政拘留不在听证范围内（D错）。听证不收费，当事人不承担听证费用。',src:'觉晓/竹马'},
+{id:'k234',subjectId:'xz',chapter:'行政复议·受案',type:'single',q:'对下列哪一行政行为，不可申请行政复议？',opts:['警告','罚款500元','行政拘留5日','行政法规的规定'],answer:3,explain:'行政复议法规定具体行政行为可复议；但抽象行政行为（行政法规、规章等）不可直接复议，仅在审查具体行为时一并提出对其中所依据的规范性文件（规章以下）的附带审查。行政法规不属于附带审查范围。',src:'觉晓/竹马'},
+{id:'k235',subjectId:'xz',chapter:'国家赔偿',type:'tf',q:'国家机关和国家机关工作人员行使职权侵犯公民合法权益造成损害的，受害人有依法取得国家赔偿的权利，包括行政赔偿和司法赔偿。',opts:['正确','错误'],answer:0,explain:'正确。国家赔偿法2条。行政赔偿：行政机关违法行使职权。司法赔偿：行使侦查检察审判监狱管理职权的机关违法造成损害。',src:'觉晓/竹马'},
+// 商经知,
+{id:'k236',subjectId:'sjz',chapter:'公司法·股东权利',type:'multiple',q:'关于股东知情权，根据2024年新《公司法》下列哪些选项正确？',opts:['股东有权查阅、复制公司章程、股东名册、股东会会议记录、董事会会议决议、监事会会议决议和财务会计报告','股东可要求查阅公司会计账簿、会计凭证','股东查阅会计账簿可委托会计师事务所辅助进行','公司有合理根据认为股东有不正当目的可拒绝查阅'],answer:[0,1,2,3],explain:'A对：公司法57条查阅复制权。B对：新法增加查阅会计凭证。C对：可委托专业机构辅助。D对：可能损害公司利益的不正当目的可拒绝。全部正确。',src:'觉晓/竹马'},
+{id:'k237',subjectId:'sjz',chapter:'劳动合同',type:'indefinite',q:'关于无过失性辞退的经济补偿，下列哪些说法正确？',opts:['劳动者患病或非因工负伤医疗期满不能从事原工作也不能从事另行安排的工作的，用人单位可提前30日通知解除','劳动合同订立时的客观情况发生重大变化致使合同无法履行且协商变更不成的，用人单位可解除','经济补偿按每满一年支付一个月工资的标准，六个月以上不满一年按一年计','违法解除劳动合同的赔偿金标准为经济补偿标准的两倍'],answer:[0,1,2,3],explain:'AB正确（劳动合同法40条无过失性辞退情形）。C正确（47条经济补偿N）。D正确（87条违法解除赔偿金2N）。全部正确。',src:'觉晓/竹马'},
+// 理论法,
+{id:'k238',subjectId:'ll',chapter:'宪法·基本权利',type:'single',q:'关于公民基本权利的限制原则，下列哪一说正确？',opts:['基本权利不受任何限制','只有全国人大可以限制基本权利','对基本权利的限制须符合法律保留原则和比例原则','行政机关可根据工作需要自由限制基本权利'],answer:2,explain:'宪法51条：公民行使自由和权利不得损害国家社会集体利益和他人合法权益；对基本权利的限制须由法律规定（法律保留）且手段与目的成比例（比例原则）。并非不受任何限制（A错）；全国人大常委会也有权（B片面）；行政机关无权自行限制（D错）。',src:'觉晓/竹马'},
+{id:'k239',subjectId:'ll',chapter:'法治思想',type:'multiple',q:'关于习近平法治思想，下列哪些选项正确？',opts:['核心要义是「十一个坚持」','根本立场是以人民为中心','全面依法治国的总目标是建设中国特色社会主义法治体系、建设社会主义法治国家','坚持依法治国首先要坚持依宪治国'],answer:[0,1,2,3],explain:'习近平法治思想核心要义为「十一个坚持」（A对）；以人民为中心是根本立场（B对）；总目标是建设法治体系和法治国家（C对）；宪法是国家根本法（D对）。全部正确。',src:'觉晓/竹马'},
+{id:'k240',subjectId:'ll',chapter:'法理学·法律规则',type:'tf',q:'法律规则在适用时具有优先性。只有在穷尽法律规则后，方可适用法律原则作为裁判依据。',opts:['正确','错误'],answer:0,explain:'正确。规则具体可操作并优先适用。穷尽规则仍无规定或规则冲突严重不正义时，方可适用原则。但原则不可直接替代规则。',src:'觉晓/竹马'},
+// 三国法,
+{id:'k241',subjectId:'sg',chapter:'国际私法·法律适用',type:'single',q:'根据《涉外民事关系法律适用法》，扶养适用一方当事人经常居所地法律、国籍国法律或主要财产所在地法律中对被扶养人最有利的法律。这体现了哪一原则？',opts:['最密切联系原则','意思自治原则','弱者保护原则','属地原则'],answer:2,explain:'适用对被扶养人最有利的法律→弱者保护原则。涉外扶养、消费者合同、产品责任等均体现此原则。',src:'觉晓/竹马'},
+{id:'k242',subjectId:'sg',chapter:'国际经济法·CISG',type:'tf',q:'《联合国国际货物销售合同公约》(CISG)适用于营业地在不同缔约国的货物买卖，但不适用于供私人、家人或家庭使用的消费品的销售。',opts:['正确','错误'],answer:0,explain:'正确。CISG第2条a款明确排除消费品销售（消费者保护）。还排除拍卖、扣押物、有价证券、船舶飞机、电力等。',src:'觉晓/竹马'},
+{id:'k243',subjectId:'sg',chapter:'国际公法·外交豁免',type:'multiple',q:'关于外交特权与豁免，下列哪些选项正确？',opts:['外交代表人身不可侵犯','外交代表的寓所和财产不可侵犯','外交代表在驻在国享有刑事管辖的绝对豁免','外交代表就其在驻在国从事的商业活动享有民事豁免'],answer:[0,1,2],explain:'ABC正确（维也纳外交关系公约29-31条）。D错：民事行政豁免有例外——私有不动产诉讼、继承、职务外商业活动不豁免。',src:'觉晓/竹马'},
+// 竹马速记刷题 — 是非题精选（原竹马PDF）,
+{id:'k244',subjectId:'x',chapter:'犯罪停止形态',type:'tf',q:'甲对乙的住宅放火，乙为救出婴儿冲入住宅被烧死。乙的死亡由其冒险行为造成，与甲的放火行为之间没有因果关系。',opts:['正确','错误'],answer:1,explain:'错误。甲的放火行为制造了对人身安全的危险，乙在紧急避险情形下冲入火场救婴儿系正常且可预见的介入因素，不中断因果关系。乙的死亡应归责于甲的放火行为。',src:'竹马/是非题'},
+{id:'k245',subjectId:'x',chapter:'正当防卫',type:'tf',q:'郭某与刘某在船上争执，刘某追打郭某中失足落水、不谙水性、向郭某求救。郭某害怕刘某上来继续打他，不予理睬。后刘某被其他船只救起。郭某对刘某不成立不作为犯罪，成立正当防卫。',opts:['正确','错误'],answer:1,explain:'错误。郭某因先前争执行为制造了刘某落水的危险→对其有救助义务（先行行为产生的作为义务），不予理睬属不作为。刘某的侵害（追打）在落水时已结束→不存在正在进行的侵害，不成立正当防卫。',src:'竹马/是非题'},
 ];
 
 /* ===================== 存储 ===================== */
@@ -800,10 +865,9 @@ function onSubNotes(id,v){const s=state.subjects.find(x=>x.id===id);s.notes=v;pe
 /* ===================== 渲染：打卡 / 计划（已移除） ===================== */
 /* 每日打卡与阶段计划模块已按用户要求移除 */
 
-/* ===================== 渲染：资料库（按科目分组的知识点信息卡片） ===================== */
+/* ===================== 渲染：资料库（可折叠知识点列表，逐条标记已读） ===================== */
 const RES_SUBJECT_LABEL = {'m':'民法','x':'刑法','xz':'行政法与行政诉讼法','ms':'民事诉讼法','xs':'刑事诉讼法','sjz':'商经知','ll':'理论法','sg':'三国法'};
 
-// 将一条资料的 content（编号要点文本）解析为知识点数组 [{title, body}]
 function parseKnowledgePoints(content){
   const out=[];
   (content||'').split('\n').forEach(line=>{
@@ -822,54 +886,97 @@ function parseKnowledgePoints(content){
   return out;
 }
 
+function toggleKpRead(resId, kpIdx, event){
+  if(event) event.stopPropagation();
+  const r=state.resources.find(x=>x.id===resId);
+  if(!r) return;
+  if(!r.readKps) r.readKps={};
+  r.readKps[kpIdx]=!r.readKps[kpIdx];
+  persist();
+  // 轻量更新：不重建全列表，只改单项样式
+  const item=document.querySelector('.res-kp-item[data-rid="'+resId+'"][data-kpi="'+kpIdx+'"]');
+  if(item){
+    const cb=item.querySelector('.res-kp-cb');
+    if(cb){ cb.classList.toggle('checked',r.readKps[kpIdx]); cb.textContent=r.readKps[kpIdx]?'\u2713':''; }
+    item.classList.toggle('read',r.readKps[kpIdx]);
+  }
+  // 更新头部计数（轻量）
+  updateResGroupCounts();
+}
+
+function updateResGroupCounts(){
+  document.querySelectorAll('.res-group').forEach(g=>{
+    const span=g.querySelector('.res-group-count');
+    if(!span) return;
+    let read=0, total=0;
+    g.querySelectorAll('.res-kp-item').forEach(it=>{
+      total++;
+      if(it.classList.contains('read')) read++;
+    });
+    span.textContent=(read?'已读 '+read+'/':'')+total+' 个知识点 · 点标题展开 · ';
+  });
+}
+
 function renderResources(){
   const wrap=document.getElementById('resList');
-  // 按 subjectId 分组
-  const groups={}; const others=[];
+  const groups={}, others=[];
   state.resources.forEach(r=>{
     if(r.subjectId){ (groups[r.subjectId]=groups[r.subjectId]||[]).push(r); }
     else others.push(r);
   });
   let html='';
-  // 按八科顺序渲染
   state.subjects.forEach(sub=>{
     const list=groups[sub.id]||[];
-    let cards='';
+    let items='', totalRead=0, totalKp=0;
     list.forEach(r=>{
       const kps=parseKnowledgePoints(r.content);
       if(kps.length){
-        cards += kps.map((kp,i)=>
-          '<div class="res-card" onclick="openRes(\''+r.id+'\')">'+
-            '<div class="kp-idx">考点 '+(i+1)+'</div>'+
-            '<div class="kp-title">'+escapeHtml(kp.title)+'</div>'+
-            (kp.body?'<div class="kp-body">'+escapeHtml(kp.body)+'</div>':'')+
-          '</div>'
-        ).join('');
+        kps.forEach((kp,i)=>{
+          const read=r.readKps&&r.readKps[i];
+          if(read) totalRead++;
+          totalKp++;
+          items += '<div class="res-kp-item'+(read?' read':'')+'" data-rid="'+r.id+'" data-kpi="'+i+'">'+
+            '<div class="res-kp-header" onclick="var b=this.nextElementSibling;b.classList.toggle(\'open\');this.querySelector(\'.res-kp-chev\').classList.toggle(\'open\');">'+
+              '<div class="res-kp-cb'+(read?' checked':'')+'" onclick="toggleKpRead(\''+r.id+'\','+i+',event)">'+(read?'\u2713':'')+'</div>'+
+              '<div class="res-kp-num">考点'+(i+1)+'</div>'+
+              '<div class="kp-title" style="flex:1;min-width:0;padding-top:1px">'+escapeHtml(kp.title)+'</div>'+
+              '<div class="res-kp-chev">\u25be</div>'+
+            '</div>'+
+            '<div class="res-kp-body">'+escapeHtml(kp.body)+'</div>'+
+          '</div>';
+        });
       } else {
-        cards += '<div class="res-card" onclick="openRes(\''+r.id+'\')">'+
-          '<div class="kp-title">'+escapeHtml(r.name)+'</div>'+
-          '<div class="kp-body">'+escapeHtml((r.content||'').slice(0,80))+((r.content||'').length>80?'…':'')+'</div>'+
+        totalKp++;
+        items += '<div class="res-kp-item" data-rid="'+r.id+'">'+
+          '<div class="res-kp-header" onclick="var b=this.nextElementSibling;b.classList.toggle(\'open\');this.querySelector(\'.res-kp-chev\').classList.toggle(\'open\');">'+
+            '<div class="res-kp-num">\ud83d\udcc4</div>'+
+            '<div class="kp-title" style="flex:1;min-width:0;padding-top:1px">'+escapeHtml(r.name)+'</div>'+
+            '<div class="res-kp-chev">\u25be</div>'+
+          '</div>'+
+          '<div class="res-kp-body">'+escapeHtml(r.content||'')+'</div>'+
         '</div>';
       }
     });
-    if(cards){
-      const total=list.reduce((a,r)=>a+parseKnowledgePoints(r.content).length,0);
+    if(items){
       html += '<div class="res-group">'+
         '<div class="res-group-head"><span class="res-group-tag">'+escapeHtml(sub.name)+'</span>'+
-        '<span class="muted">'+total+' 个知识点 · 点卡片可查看/编辑</span></div>'+
-        '<div class="res-grid">'+cards+'</div>'+
+        '<span class="muted"><span class="res-group-count">'+(totalRead?'已读 '+totalRead+'/':'')+totalKp+' 个知识点 · 点标题展开 · </span></span>'+
+        '<a href="#" onclick="event.preventDefault();var r=state.resources.find(x=>x.subjectId===\''+sub.id+'\');if(r)openRes(r.id);" style="font-size:12px;color:#2b5cff">\u270f\ufe0f 编辑</a></div>'+
+        '<div class="res-kp-list">'+items+'</div>'+
       '</div>';
     }
   });
-  // 未分类（用户资料）
   if(others.length){
-    let ocards=others.map(r=>'<div class="res-card" onclick="openRes(\''+r.id+'\')">'+
-      '<div class="kp-title">'+escapeHtml(r.name)+'</div>'+
-      '<div class="kp-body">'+escapeHtml((r.content||'').slice(0,80))+((r.content||'').length>80?'…':'')+'</div>'+
+    let oitems=others.map(r=>'<div class="res-kp-item" data-rid="'+r.id+'">'+
+      '<div class="res-kp-header" onclick="openRes(\''+r.id+'\')">'+
+        '<div class="res-kp-num">\ud83d\udcc4</div>'+
+        '<div class="kp-title" style="flex:1;min-width:0;padding-top:1px">'+escapeHtml(r.name)+'</div>'+
+        '<div style="font-size:11px;color:#9aa3b2;flex-shrink:0">查看/编辑 \u2192</div>'+
+      '</div>'+
     '</div>').join('');
     html += '<div class="res-group">'+
-      '<div class="res-group-head"><span class="res-group-tag">我的资料</span><span class="muted">'+others.length+' 条</span></div>'+
-      '<div class="res-grid">'+ocards+'</div>'+
+      '<div class="res-group-head"><span class="res-group-tag">我的资料</span><span class="muted">'+others.length+' 条 · 点标题查看/编辑</span></div>'+
+      '<div class="res-kp-list">'+oitems+'</div>'+
     '</div>';
   }
   if(!html){
